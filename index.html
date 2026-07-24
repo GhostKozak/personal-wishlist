@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Wishlist Page</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header></header>
+  <main>
+    <section>
+      <form action="" id="wishlist-form">
+        <div class="form-group">
+          <label for="">Name : </label>
+          <input type="text" name="name">
+        </div>
+        <div class="form-group">
+          <label for="">Link : </label>
+          <input type="url" name="link">
+        </div>
+        <div class="form-group">
+          <label for="">Price : </label>
+          <input type="number" name="price">
+        </div>
+        <button type="submit">Save to Wishlist</button>
+      </form>
+    </section>
+
+    <section>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Link</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="wishlist-view">
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <footer></footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

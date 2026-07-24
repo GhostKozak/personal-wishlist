@@ -1,0 +1,82 @@
+:root {
+  --green: #90bb01;
+  --purple: #642f99;
+  --purple-dark: #411d61;
+  --purple-light: #d1b6f4;
+
+  /* Siyah, Beyaz ve Yardımcı Griler */
+  --bg-color: #0d1117;       /* Derin Koyu Gri / Siyaha Yakın Arka Plan */
+  --card-bg: #161b22;        /* Form ve Tablo İçin Biraz Daha Açık Koyu Gri */
+  --text-main: #f0f6fc;      /* Ana Metin Beyazı */
+  --text-muted: #8b949e;     /* Yardımcı Metin Grisi */
+  --border-color: #30363d;   /* İnce Sınır Çizgileri Grisi */
+
+  /* Anlamsal Eşleştirmeler (Semantic Mapping) */
+  --primary: var(--purple);
+  --primary-hover: var(--purple-dark);
+  --accent: var(--purple-light);
+  --success: var(--green);   /* Yeşil rengi kaydetme butonlarında veya onaylarda kullanabiliriz */
+  --danger: #f85149;         /* Silme butonu için standart tatlı bir kırmızı */
+  
+  /* Kenar Yuvarlama ve Geçiş Süreleri */
+  --radius: 8px;
+  --transition: all 0.2s ease-in-out;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+table {
+  background-color: var(--card-bg);
+}
+
+table, tr, td {
+  border: 1px solid #000;
+  border-collapse: collapse;
+  padding: 1rem;
+}
+
+main {
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+section {
+  display: flex;
+  justify-content: center;
+}
+
+input {
+  background: none;
+  border: none;
+  background-color: var(--card-bg);
+}
+
+input:focus {
+  border-color: var(--accent);
+}
+
+#wishlist-view {
+  
+}
