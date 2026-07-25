@@ -11,6 +11,12 @@
   --text-muted: #8b949e;     /* Yardımcı Metin Grisi */
   --border-color: #30363d;   /* İnce Sınır Çizgileri Grisi */
 
+  /* Eisenhower Matris Renkleri */
+  --p1-red: #f85149;       /* Do First: Acil & Önemli */
+  --p2-blue: #38bdf8;      /* Schedule: Önemli & Acil Değil */
+  --p3-yellow: #eab308;    /* Delegate: Acil & Önemli Değil */
+  --p4-gray: #6e7681;      /* Don't Do / Someday: Monitör Kutusu (Acil Değil & Önemli Değil) */
+
   /* Anlamsal Eşleştirmeler (Semantic Mapping) */
   --primary: var(--purple);
   --primary-hover: var(--purple-dark);
@@ -127,7 +133,7 @@ label {
   color: var(--text-muted);
 }
 
-input {
+input, select {
   width: 100%;
   padding: 0.75rem 1rem;
   background-color: var(--bg-color);
@@ -139,14 +145,14 @@ input {
   transition: var(--transition);
 }
 
-input:focus {
+input:focus, select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(209, 182, 244, 0.15);
 }
 
 button[type="submit"] {
   background-color: var(--success);
-  color: var(--bg-color);
+  color: var(--card-bg);
   font-weight: 600;
   border: none;
   border-radius: var(--radius);
@@ -187,7 +193,7 @@ td {
   color: var(--text-main);
   border: none;
   padding: 0.4rem 0.8rem;
-  border-radius: calc(--radius - 2px);
+  border-radius: calc(var(--radius) - 2px);
   cursor: pointer;
   transition: var(--transition);
 }
@@ -195,3 +201,18 @@ td {
 .btn-delete:hover {
   opacity: 0.85;
 }
+
+/* Priority Badges */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-p1 { background-color: rgba(248, 81, 73, 0.2); color: var(--p1-red); border: 1px solid var(--p1-red); }
+.badge-p2 { background-color: rgba(56, 189, 248, 0.2); color: var(--p2-blue); border: 1px solid var(--p2-blue); }
+.badge-p3 { background-color: rgba(234, 179, 8, 0.2); color: var(--p3-yellow); border: 1px solid var(--p3-yellow); }
+.badge-p4 { background-color: rgba(110, 118, 129, 0.2); color: var(--p4-gray); border: 1px solid var(--p4-gray); }
