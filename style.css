@@ -23,6 +23,22 @@
   --transition: all 0.2s ease-in-out;
 }
 
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-color: #f6f8fa;       /* Açık gri / Beyaza yakın arka plan */
+    --card-bg: #ffffff;        /* Kartlar ve formlar için saf beyaz */
+    --text-main: #24292f;      /* Koyu gri / Siyaha yakın ana metin */
+    --text-muted: #57606a;     /* Yardımcı gri metin */
+    --border-color: #d0d7de;   /* Açık tema sınır çizgileri */
+    
+    --primary: var(--purple);
+    --primary-hover: var(--purple-dark);
+    --accent: var(--purple);
+    --success: #2da44e;        /* Açık temada daha net görünen bir yeşil */
+    --danger: #cf222e;         /* Açık temada daha net kırmızı */
+  }
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -38,45 +54,144 @@ body {
   background-color: var(--bg-color);
   color: var(--text-main);
   line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-table {
+header, footer {
+  text-align: center;
+  padding: 1.5rem;
   background-color: var(--card-bg);
 }
 
-table, tr, td {
-  border: 1px solid #000;
-  border-collapse: collapse;
-  padding: 1rem;
+footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border-color);
+  border-bottom: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 main {
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
   padding: 2rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
 section {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+}
+
+section h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 input {
-  background: none;
-  border: none;
-  background-color: var(--card-bg);
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  color: var(--text-main);
+  font-size: 1rem;
+  outline: none;
+  transition: var(--transition);
 }
 
 input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(209, 182, 244, 0.15);
 }
 
-#wishlist-view {
-  
+button[type="submit"] {
+  background-color: var(--success);
+  color: var(--bg-color);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+button[type="submit"]:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--card-bg);
+  text-align: left;
+}
+
+th, td {
+  border: 1px solid var(--border-color);
+  padding: 0.85rem 1rem;
+}
+
+th {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+td {
+  color: var(--text-main);
+}
+
+.btn-delete {
+  background-color: var(--danger);
+  color: var(--text-main);
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: calc(--radius - 2px);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-delete:hover {
+  opacity: 0.85;
 }

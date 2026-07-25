@@ -23,7 +23,7 @@ const renderWishlist = () => {
       <td>${element.name}</td>
       <td>${element.price}</td>
       <td><a href="${element.link}">Link</a></td>
-      <td><button class="delete-btn" data-id="${element.id}">Delete</button></td>
+      <td><button class="btn-delete" data-id="${element.id}">Delete</button></td>
     </tr>
   `).join('');
 }
@@ -35,7 +35,7 @@ const updateWishlist = (updatedArray) => {
 }
 
 VIEW.addEventListener('click', (event) => {
-  if (event.target.classList.contains('delete-btn')) {
+  if (event.target.classList.contains('btn-delete')) {
     const newWishlist = wishlist.filter(item => item.id !== event.target.dataset.id);
     updateWishlist(newWishlist)
   }
