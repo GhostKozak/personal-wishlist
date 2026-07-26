@@ -145,9 +145,59 @@ input, select {
   transition: var(--transition);
 }
 
+select {
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="%23ffffff"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center right 1rem;
+}
+
 input:focus, select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(209, 182, 244, 0.15);
+}
+
+input[type="checkbox"] {
+  appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2.5rem;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  transition: var(--transition)
+}
+
+input[type="checkbox"]::before {
+  font-size: 0.75rem;
+  font-weight: bold;
+  line-height: 1;
+  transition: var(--transition);
+}
+
+input[type="checkbox"]:not(:checked)::before {
+  content: "✕";
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+input[type="checkbox"]:checked {
+  background-color: rgba(144, 187, 1, 0.15);
+  border-color: var(--success);
+}
+
+input[type="checkbox"]:checked::before {
+  content: "✔";
+  color: var(--success);
+  opacity: 1;
+}
+
+input[type="checkbox"]:not(:checked):hover::before {
+  opacity: 0.9;
+  color: var(--danger);
 }
 
 button[type="submit"] {
@@ -216,3 +266,11 @@ td {
 .badge-p2 { background-color: rgba(56, 189, 248, 0.2); color: var(--p2-blue); border: 1px solid var(--p2-blue); }
 .badge-p3 { background-color: rgba(234, 179, 8, 0.2); color: var(--p3-yellow); border: 1px solid var(--p3-yellow); }
 .badge-p4 { background-color: rgba(110, 118, 129, 0.2); color: var(--p4-gray); border: 1px solid var(--p4-gray); }
+
+.form-group:has(#item-installmentCount) {
+  display: none;
+}
+
+.form-group:has(#item-installment:checked) ~ .form-group:has(#item-installmentCount) {
+  display: flex;
+}

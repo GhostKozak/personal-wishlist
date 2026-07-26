@@ -1,5 +1,9 @@
 const FORM = document.getElementById('wishlist-form');
 const VIEW = document.getElementById('wishlist-view');
+const TotalPrice = document.getElementById('total-price');
+const MonthlyInstallment = document.getElementById('monthly-installment');
+const InstallmentCount = document.getElementById('installment-count');
+
 
 let wishlist = JSON.parse(localStorage.getItem('myWishlist')) || [];
 
@@ -13,8 +17,26 @@ const getPriorityInfo = (importance, urgency) => {
   if (importance === 'not-important' && urgency === 'urgent') {
     return { score: 3, label: 'P3: Urgent', class: 'badge-p3' };
   }
-  // Monitör senaryosu: Not Important & Not Urgent
+
   return { score: 4, label: 'P4: Someday', class: 'badge-p4' };
+}
+
+const calculateBudget = () => {
+  
+  const totalWishlistCost = wishlist.reduce((total, item) => {
+    return total + Number(item.price)
+  }, 0);
+
+  const totalMonthlyInstallment = wishlist.reduce((total, item) => {
+    if (item.isInstallment === true) {
+      return total + (Number(item.price) / Number(item.installmentCount));
+    }
+  }, 0);
+
+  return {
+    "wishlistTotal" : totalWishlistCost,
+    "installmentTotal" : totalMonthlyInstallment
+  };
 }
 
 FORM.addEventListener('submit', (event) => {
@@ -38,24 +60,35 @@ const renderWishlist = () => {
     return priorityA - priorityB;
   });
 
-  const priority = getPriorityInfo(element.importance, element.urgency);
-  const formattedPrice = element.price ? `${Number(element.price).toLocaleString('tr-TR')} TL` : '-';
+  VIEW.innerHTML = sortedList.map(element => {
+    const priority = getPriorityInfo(element.importance, element.urgency);
+    const formattedPrice = element.price ? `${Number(element.price).toLocaleString('tr-TR')} TL` : '-';
 
-  VIEW.innerHTML = sortedList.map(element => `
-    <tr>
-      <td>${element.name}</td>
-      <td>${formattedPrice}</td>
+    return ` 
+      <tr>
+        <td>${element.name}</td>
+        <td>${formattedPrice}</td>
+        <td>${element.isInstallment}</td>
         <td><span class="badge ${priority.class}">${priority.label}</span></td>
-      <td>${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">Link</a>` : '-'}</td>
-      <td><button class="btn-delete" data-id="${element.id}">Delete</button></td>
-    </tr>
-  `).join('');
+        <td>${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">Link</a>` : '-'}</td>
+        <td><button class="btn-delete" data-id="${element.id}">Delete</button></td>
+      </tr>
+    `
+  }).join('');
+}
+
+const renderSummaryCards = () => {
+  const {wishlistTotal, installmentTotal} = calculateBudget();
+  
+  TotalPrice.innerHTML = `${wishlistTotal} TL`;
+  MonthlyInstallment.innerHTML = `${installmentTotal} TL / monthly`;
 }
 
 const updateWishlist = (updatedArray) => {
   wishlist = updatedArray;
   localStorage.setItem('myWishlist', JSON.stringify(wishlist));
   renderWishlist();
+  //renderSummaryCards();
 }
 
 VIEW.addEventListener('click', (event) => {
@@ -65,4 +98,7 @@ VIEW.addEventListener('click', (event) => {
   }
 })
 
-window.addEventListener('DOMContentLoaded', renderWishlist);
+window.addEventListener('DOMContentLoaded', (
+  renderWishlist()//, 
+  //renderSummaryCards()
+));

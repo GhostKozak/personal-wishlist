@@ -27,14 +27,14 @@
 
         <div class="form-group">
           <label for="item-price">Price : </label>
-          <input type="number" id="item-price" name="price" step="0.01" min="0" placeholder="0.00">
+          <input type="number" id="item-price" name="price" step="0.01" min="0" placeholder="0.00" required>
         </div>
 
         <div class="form-group">
           <label for="item-importance">Importance : </label>
           <select name="importance" id="item-importance" required>
             <option value="important">Important (Gerekli / Kritik)</option>
-            <option value="non-important">Not Important (Konfor / İstek)</option>
+            <option value="not-important">Not Important (Konfor / İstek)</option>
           </select>
         </div>
 
@@ -46,9 +46,50 @@
           </select>
         </div>
 
+        <div class="form-group">
+          <label for="item-installment">Is Installment :</label>
+          <input type="checkbox" name="isInstallment" id="item-installment">
+        </div>
+
+        <div class="form-group">
+          <label for="item-installmentCount">Installment Count :</label>
+          <select name="installmentCount" id="item-installmentCount">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+          </select>
+        </div>
+
         <button type="submit">Save to Wishlist</button>
       </form>
     </section>
+
+    <!-- <section class="summary-section">
+      <h2>Budget AND Installment Summary</h2>
+      <div class="summary-cards">
+        <div class="card">
+          <span class="card-title">Total Wishlist Value</span>
+          <span class="card-value" id="total-price">0,00 TL</span>
+        </div>
+        <div class="card">
+          <span class="card-title">Montly Installment Total</span>
+          <span class="card-value" id="monthly-installment">0,00 TL / monthly</span>
+        </div>
+        <div class="card">
+          <span class="card-title">Installment Items</span>
+          <span class="card-value" id="installment-count">0 Item</span>
+        </div>
+      </div>
+    </section> -->
 
     <section class="table-section">
       <h2>My Wishlist</h2>
@@ -57,7 +98,8 @@
           <tr>
             <th>Name</th>
             <th>Price</th>
-            <th>Priorty</th>
+            <th>Payment</th>
+            <th>Priority</th>
             <th>Link</th>
             <th>Actions</th>
           </tr>
