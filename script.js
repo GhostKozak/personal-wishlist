@@ -24,13 +24,12 @@ const getPriorityInfo = (importance, urgency) => {
 const calculateBudget = () => {
   
   const totalWishlistCost = wishlist.reduce((total, item) => {
-    return total + Number(item.price)
+    return total + Number(item.price);
   }, 0);
 
-  const totalMonthlyInstallment = wishlist.reduce((total, item) => {
-    if (item.isInstallment === true) {
-      return total + (Number(item.price) / Number(item.installmentCount));
-    }
+  const totalMonthlyInstallment = wishlist.filter(item => item.isInstallment === "on").reduce((acc, item) => {
+    acc += (Number(item.price) / Number(item.installmentCount));
+    return acc;
   }, 0);
 
   return {
@@ -68,7 +67,7 @@ const renderWishlist = () => {
       <tr>
         <td>${element.name}</td>
         <td>${formattedPrice}</td>
-        <td>${element.isInstallment}</td>
+        <td>${element.isInstallment == "on" ? "Taksit" : "Peşin"}</td>
         <td><span class="badge ${priority.class}">${priority.label}</span></td>
         <td>${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">Link</a>` : '-'}</td>
         <td><button class="btn-delete" data-id="${element.id}">Delete</button></td>
@@ -79,16 +78,18 @@ const renderWishlist = () => {
 
 const renderSummaryCards = () => {
   const {wishlistTotal, installmentTotal} = calculateBudget();
+  const Count = wishlist.filter(item => item.isInstallment === "on").length;
   
-  TotalPrice.innerHTML = `${wishlistTotal} TL`;
-  MonthlyInstallment.innerHTML = `${installmentTotal} TL / monthly`;
+  TotalPrice.innerHTML = `${wishlistTotal.toLocaleString('tr-TR')} TL`;
+  MonthlyInstallment.innerHTML = `${installmentTotal.toLocaleString('tr-TR')} TL / monthly`;
+  InstallmentCount.innerHTML = `${Count} Item`;
 }
 
 const updateWishlist = (updatedArray) => {
   wishlist = updatedArray;
   localStorage.setItem('myWishlist', JSON.stringify(wishlist));
   renderWishlist();
-  //renderSummaryCards();
+  renderSummaryCards();
 }
 
 VIEW.addEventListener('click', (event) => {
@@ -98,7 +99,7 @@ VIEW.addEventListener('click', (event) => {
   }
 })
 
-window.addEventListener('DOMContentLoaded', (
-  renderWishlist()//, 
-  //renderSummaryCards()
-));
+window.addEventListener('DOMContentLoaded', () => {
+  renderWishlist();
+  renderSummaryCards();
+});
