@@ -307,3 +307,20 @@ td {
   color: var(--text-muted);
   font-weight: 500;
 }
+
+#wishlist-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+#wishlist-form .form-group {
+  min-height: 5rem;
+}
+
+#wishlist-form .form-group:first-of-type {
+  grid-column: span 2;
+}
+
+#wishlist-form button {
+  grid-column: span 2;
+}
