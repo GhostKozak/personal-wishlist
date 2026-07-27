@@ -1,3 +1,15 @@
+/**
+ * @typedef {Object} WishlistItem
+ * @property {string} id - Crypto UUID
+ * @property {string} name - Ürün adı
+ * @property {string} [link] - Ürün linki
+ * @property {string} price - Ürün fiyatı
+ * @property {'important' | 'not-important'} importance - Öncelik durumu
+ * @property {'urgent' | 'not-urgent'} urgency - Aciliyet durumu
+ * @property {'on'} [isInstallment] - Checkbox işaretli ise 'on' gelir
+ * @property {string} [installmentCount] - Taksit sayısı
+ */
+
 const FORM = document.getElementById('wishlist-form');
 const VIEW = document.getElementById('wishlist-view');
 const TotalPrice = document.getElementById('total-price');
