@@ -65,6 +65,10 @@ body {
   flex-direction: column;
 }
 
+small {
+  color: var(--text-muted);
+}
+
 header, footer {
   text-align: center;
   padding: 1.5rem;
@@ -273,4 +277,33 @@ td {
 
 .form-group:has(#item-installment:checked) ~ .form-group:has(#item-installmentCount) {
   display: flex;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.summary-cards .card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--bg-color);
+  padding: 2rem 1rem;
+  border-radius: var(--radius);
+}
+
+.summary-cards .card .card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--text-main);
+}
+
+.summary-cards .card .card-value {
+  color: var(--text-muted);
+  font-weight: 500;
 }

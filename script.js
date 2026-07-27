@@ -7,6 +7,13 @@ const InstallmentCount = document.getElementById('installment-count');
 
 let wishlist = JSON.parse(localStorage.getItem('myWishlist')) || [];
 
+const formatCurrency = (price) => {
+  return Number(price || 0).toLocaleString("tr-TR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+}
+
 const getPriorityInfo = (importance, urgency) => {
   if (importance === 'important' && urgency === 'urgent') {
     return { score: 1, label: 'P1: Urgent & Important', class: 'badge-p1' };
@@ -61,13 +68,12 @@ const renderWishlist = () => {
 
   VIEW.innerHTML = sortedList.map(element => {
     const priority = getPriorityInfo(element.importance, element.urgency);
-    const formattedPrice = element.price ? `${Number(element.price).toLocaleString('tr-TR')} TL` : '-';
 
     return ` 
       <tr>
         <td>${element.name}</td>
-        <td>${formattedPrice}</td>
-        <td>${element.isInstallment == "on" ? "Taksit" : "Peşin"}</td>
+        <td>${formatCurrency(element.price)} TL</td>
+        <td>${element.isInstallment == "on" ? `${element.installmentCount} Taksit <br><small>(${formatCurrency(element.price / element.installmentCount)} TL/ay)</small>` : "Peşin"}</td>
         <td><span class="badge ${priority.class}">${priority.label}</span></td>
         <td>${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">Link</a>` : '-'}</td>
         <td><button class="btn-delete" data-id="${element.id}">Delete</button></td>
@@ -80,8 +86,8 @@ const renderSummaryCards = () => {
   const {wishlistTotal, installmentTotal} = calculateBudget();
   const Count = wishlist.filter(item => item.isInstallment === "on").length;
   
-  TotalPrice.innerHTML = `${wishlistTotal.toLocaleString('tr-TR')} TL`;
-  MonthlyInstallment.innerHTML = `${installmentTotal.toLocaleString('tr-TR')} TL / monthly`;
+  TotalPrice.innerHTML = `${formatCurrency(wishlistTotal)} TL`;
+  MonthlyInstallment.innerHTML = `${formatCurrency(installmentTotal)} TL / monthly`;
   InstallmentCount.innerHTML = `${Count} Item`;
 }
 
