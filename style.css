@@ -244,7 +244,7 @@ td {
 
 .btn-delete {
   background-color: var(--danger);
-  color: var(--text-main);
+  color: #fff;
   border: none;
   padding: 0.4rem 0.8rem;
   border-radius: calc(var(--radius) - 2px);
