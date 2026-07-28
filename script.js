@@ -9,6 +9,7 @@
  * @property {'urgent' | 'not-urgent'} urgency - Aciliyet durumu
  * @property {'on'} [isInstallment] - Checkbox işaretli ise 'on' gelir
  * @property {string} [installmentCount] - Taksit sayısı
+ * @property {string} [note]
  */
 
 const FORM = document.getElementById('wishlist-form');
@@ -114,6 +115,7 @@ const renderWishlist = () => {
         <td>
           ${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">${element.name}</a>` : element.name}
           ${element.altLink ? `<a href="${element.altLink}" title="Alt Link" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
+          ${element.note ? `<br><small class="has-tooltip" data-tooltip="${element.note}">📝</small>` : ""}
         </td>
         <td>${formatCurrency(element.price)} TL</td>
         <td>${element.isInstallment == "on" ? `${element.installmentCount} Taksit <br><small>(${formatCurrency(element.price / element.installmentCount)} TL/ay)</small>` : "Peşin"}</td>
@@ -155,6 +157,7 @@ const updateItem = (id) => {
   FORM.elements.urgency.value = editItem.urgency;
   FORM.elements.isInstallment.checked = editItem.isInstallment === "on";
   FORM.elements.installmentCount.value = editItem.installmentCount;
+  FORM.elements.note.value = editItem.note || "";
   FORM.elements.submitBtn.textContent = 'Update Item';
   document.querySelector('section.form-section > h2').textContent = "Update Item";
   FORM.elements.cancelBtn.disabled = false;

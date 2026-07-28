@@ -142,7 +142,7 @@ label {
   gap: 0.5rem;
 }
 
-input, select {
+input, select, textarea {
   width: 100%;
   padding: 0.75rem 1rem;
   background-color: var(--bg-color);
@@ -152,6 +152,10 @@ input, select {
   font-size: 1rem;
   outline: none;
   transition: var(--transition);
+}
+
+textarea {
+  resize: none;
 }
 
 select {
@@ -339,10 +343,43 @@ td {
   grid-column: span 2;
 }
 
-#wishlist-form button:has( + button:disabled) {
+#wishlist-form button:has( + button:disabled),
+.form-group:has(textarea) {
   grid-column: span 2;
 }
 
 #wishlist-form button:has( + button) {
   grid-column: span 1;
+}
+
+.has-tooltip {
+  position: relative;
+  cursor: help;
+  margin-left: 4px;
+}
+
+.has-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-20%);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.8rem;
+  font-size: 1rem;
+  white-space: nowrap;
+  max-width: 500px;
+  white-space: normal; 
+  width: max-content;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+  z-index: 10;
+}
+
+.has-tooltip:hover::after {
+  opacity: 1;
 }
