@@ -3,6 +3,7 @@
  * @property {string} id - Crypto UUID
  * @property {string} name - Ürün adı
  * @property {string} [link] - Ürün linki
+ * @property {string} [altLink] - Alt. Ürün linki
  * @property {string} price - Ürün fiyatı
  * @property {'important' | 'not-important'} importance - Öncelik durumu
  * @property {'urgent' | 'not-urgent'} urgency - Aciliyet durumu
@@ -110,7 +111,10 @@ const renderWishlist = () => {
 
     return ` 
       <tr>
-        <td>${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">${element.name}</a>` : element.name}</td>
+        <td>
+          ${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">${element.name}</a>` : element.name}
+          ${element.altLink ? `<a href="${element.altLink}" title="Alt Link" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
+        </td>
         <td>${formatCurrency(element.price)} TL</td>
         <td>${element.isInstallment == "on" ? `${element.installmentCount} Taksit <br><small>(${formatCurrency(element.price / element.installmentCount)} TL/ay)</small>` : "Peşin"}</td>
         <td><span class="badge ${priority.class}">${priority.label}</span></td>
@@ -146,6 +150,7 @@ const updateItem = (id) => {
   FORM.elements.name.value = editItem.name;
   FORM.elements.price.value = editItem.price;
   FORM.elements.link.value = editItem.link;
+  FORM.elements.altLink.value = editItem.altLink || "";
   FORM.elements.importance.value = editItem.importance;
   FORM.elements.urgency.value = editItem.urgency;
   FORM.elements.isInstallment.checked = editItem.isInstallment === "on";
