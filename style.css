@@ -383,3 +383,10 @@ td {
 .has-tooltip:hover::after {
   opacity: 1;
 }
+
+.priceDiff {
+  font-size: .75rem;
+}
+
+.priceDiff.positive {color: var(--success);}
+.priceDiff.negative {color: var(--danger);}

@@ -5,6 +5,8 @@
  * @property {string} [link] - Ürün linki
  * @property {string} [altLink] - Alt. Ürün linki
  * @property {string} price - Ürün fiyatı
+ * @property {string} initialPrice - İlk Eklendiği Fiyat
+ * @property {string} createdAt - Eklenme Tarih
  * @property {'important' | 'not-important'} importance - Öncelik durumu
  * @property {'urgent' | 'not-urgent'} urgency - Aciliyet durumu
  * @property {'on'} [isInstallment] - Checkbox işaretli ise 'on' gelir
@@ -75,9 +77,11 @@ FORM.addEventListener('submit', (event) => {
   const formData = new FormData(event.target);
 
   if (currentEditID !== null) {
+    const oldItem = wishlist.find(item => item.id === currentEditID);
+
     const newUpdatedItem = {
-      id: currentEditID,
-      ...Object.fromEntries(formData)
+      ...oldItem, // Değişikliğe uğramayan bütün alanları kopyalamak için, bu olmaz ise inputu bulunmuyan bütün alanlar kaybolur örnek: createdAt ve initialPrice
+      ...Object.fromEntries(formData) // Formdan gelen yeni alanları eski alanların üzerine yazar.
     };
     
     const updatedWishlist = wishlist.map(item => {
@@ -88,6 +92,8 @@ FORM.addEventListener('submit', (event) => {
   } else {
     const newWishlistItem = {
       id: crypto.randomUUID(), 
+      initialPrice: formData.get('price'),
+      createdAt: new Date().toLocaleDateString("tr-TR"),
       ...Object.fromEntries(formData)
     };
 
@@ -109,6 +115,17 @@ const renderWishlist = () => {
 
   VIEW.innerHTML = sortedList.map(element => {
     const priority = getPriorityInfo(element.importance, element.urgency);
+    const priceDiff = Number(element.price) - Number(element.initialPrice || element.price);
+
+    const diff = () => {
+      if (priceDiff > 0) {
+        return `<br><small class="priceDiff negative">▲ +${formatCurrency(priceDiff)} TL</small>`;
+      } else if (priceDiff < 0) {
+        // Math.abs() ile eksi işaretini çiftlemeyi önlüyoruz
+        return `<br><small class="priceDiff positive">▼ -${formatCurrency(Math.abs(priceDiff))} TL</small>`;
+      }
+      return "";
+    };
 
     return ` 
       <tr>
@@ -117,7 +134,10 @@ const renderWishlist = () => {
           ${element.altLink ? `<a href="${element.altLink}" title="Alt Link" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
           ${element.note ? `<br><small class="has-tooltip" data-tooltip="${element.note}">📝</small>` : ""}
         </td>
-        <td>${formatCurrency(element.price)} TL</td>
+        <td>
+          ${formatCurrency(element.price)} TL
+          ${diff()}
+        </td>
         <td>${element.isInstallment == "on" ? `${element.installmentCount} Taksit <br><small>(${formatCurrency(element.price / element.installmentCount)} TL/ay)</small>` : "Peşin"}</td>
         <td><span class="badge ${priority.class}">${priority.label}</span></td>
         <td>
