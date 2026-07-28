@@ -16,7 +16,9 @@ const TotalPrice = document.getElementById('total-price');
 const MonthlyInstallment = document.getElementById('monthly-installment');
 const InstallmentCount = document.getElementById('installment-count');
 
+let currentEditID = null;
 
+/** @type {WishlistItem[]} */
 let wishlist = JSON.parse(localStorage.getItem('myWishlist')) || [];
 
 const formatCurrency = (price) => {
@@ -40,6 +42,14 @@ const getPriorityInfo = (importance, urgency) => {
   return { score: 4, label: 'P4: Someday', class: 'badge-p4' };
 }
 
+const resetFormState = () => {
+  FORM.reset();
+  currentEditID = null;
+  FORM.elements.submitBtn.textContent = 'Save to Wishlist';
+  document.querySelector('section.form-section > h2').textContent = "Add New Item";
+  FORM.elements.cancelBtn.disabled = true;
+}
+
 const calculateBudget = () => {
   
   const totalWishlistCost = wishlist.reduce((total, item) => {
@@ -61,15 +71,32 @@ FORM.addEventListener('submit', (event) => {
   event.preventDefault();
 
   const formData = new FormData(event.target);
-  const newWishlistItem = {
-    id: crypto.randomUUID(), 
-    ...Object.fromEntries(formData)
-  };
 
-  wishlist.push(newWishlistItem);
+  if (currentEditID !== null) {
+    const newUpdatedItem = {
+      id: currentEditID,
+      ...Object.fromEntries(formData)
+    };
+    
+    const updatedWishlist = wishlist.map(item => {
+      return item.id === currentEditID ? newUpdatedItem : item
+    })
+
+    wishlist = updatedWishlist;
+  } else {
+    const newWishlistItem = {
+      id: crypto.randomUUID(), 
+      ...Object.fromEntries(formData)
+    };
+
+    wishlist.push(newWishlistItem);
+  }
+  
   updateWishlist(wishlist);
-  FORM.reset();
+  resetFormState();
 });
+
+FORM.elements.cancelBtn.addEventListener('click', () => {resetFormState(); VIEW.scrollIntoView({ block: "center" })});
 
 const renderWishlist = () => {
   const sortedList = [...wishlist].sort((a, b) => {
@@ -88,7 +115,10 @@ const renderWishlist = () => {
         <td>${element.isInstallment == "on" ? `${element.installmentCount} Taksit <br><small>(${formatCurrency(element.price / element.installmentCount)} TL/ay)</small>` : "Peşin"}</td>
         <td><span class="badge ${priority.class}">${priority.label}</span></td>
         <td>${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">Link</a>` : '-'}</td>
-        <td><button class="btn-delete" data-id="${element.id}">Delete</button></td>
+        <td>
+          <button class="btn-edit" data-id="${element.id}">Edit</button>
+          <button class="btn-delete" data-id="${element.id}">Delete</button>
+        </td>
       </tr>
     `
   }).join('');
@@ -110,11 +140,32 @@ const updateWishlist = (updatedArray) => {
   renderSummaryCards();
 }
 
+const updateItem = (id) => {
+  const editItem = wishlist.find(item => item.id === id);
+  currentEditID = editItem.id;
+
+  FORM.elements.name.value = editItem.name;
+  FORM.elements.price.value = editItem.price;
+  FORM.elements.link.value = editItem.link;
+  FORM.elements.importance.value = editItem.importance;
+  FORM.elements.urgency.value = editItem.urgency;
+  FORM.elements.isInstallment.checked = editItem.isInstallment === "on";
+  FORM.elements.installmentCount.value = editItem.installmentCount;
+  FORM.elements.submitBtn.textContent = 'Update Item';
+  document.querySelector('section.form-section > h2').textContent = "Update Item";
+  FORM.elements.cancelBtn.disabled = false;
+}
+
 VIEW.addEventListener('click', (event) => {
   if (event.target.classList.contains('btn-delete')) {
     const newWishlist = wishlist.filter(item => item.id !== event.target.dataset.id);
     updateWishlist(newWishlist)
   }
+  if (event.target.classList.contains('btn-edit')) {
+    // Edit func
+    updateItem(event.target.dataset.id);
+    FORM.scrollIntoView({ block: "center" });
+  }  
 })
 
 window.addEventListener('DOMContentLoaded', () => {

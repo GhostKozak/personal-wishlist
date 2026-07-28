@@ -204,7 +204,7 @@ input[type="checkbox"]:not(:checked):hover::before {
   color: var(--danger);
 }
 
-button[type="submit"] {
+button[type="submit"], button[name="cancelBtn"] {
   background-color: var(--success);
   color: var(--card-bg);
   font-weight: 600;
@@ -215,9 +215,18 @@ button[type="submit"] {
   transition: var(--transition);
 }
 
-button[type="submit"]:hover {
+button[type="submit"]:hover, button[name="cancelBtn"]:hover {
   opacity: 0.9;
   transform: translateY(-1px);
+}
+
+button[name="cancelBtn"] {
+  background-color: var(--danger);
+  color: #fff;
+}
+
+button[name="cancelBtn"]:disabled {
+  display: none;
 }
 
 table {
@@ -242,7 +251,7 @@ td {
   color: var(--text-main);
 }
 
-.btn-delete {
+.btn-delete, .btn-edit {
   background-color: var(--danger);
   color: #fff;
   border: none;
@@ -252,8 +261,12 @@ td {
   transition: var(--transition);
 }
 
-.btn-delete:hover {
+.btn-delete:hover, .btn-edit:hover {
   opacity: 0.85;
+}
+
+.btn-edit {
+  background-color: var(--p2-blue);
 }
 
 /* Priority Badges */
@@ -321,6 +334,10 @@ td {
   grid-column: span 2;
 }
 
-#wishlist-form button {
+#wishlist-form button:has( + button:disabled) {
   grid-column: span 2;
+}
+
+#wishlist-form button:has( + button) {
+  grid-column: span 1;
 }
