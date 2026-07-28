@@ -110,11 +110,10 @@ const renderWishlist = () => {
 
     return ` 
       <tr>
-        <td>${element.name}</td>
+        <td>${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">${element.name}</a>` : '-'}</td>
         <td>${formatCurrency(element.price)} TL</td>
         <td>${element.isInstallment == "on" ? `${element.installmentCount} Taksit <br><small>(${formatCurrency(element.price / element.installmentCount)} TL/ay)</small>` : "Peşin"}</td>
         <td><span class="badge ${priority.class}">${priority.label}</span></td>
-        <td>${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">Link</a>` : '-'}</td>
         <td>
           <button class="btn-edit" data-id="${element.id}">Edit</button>
           <button class="btn-delete" data-id="${element.id}">Delete</button>
