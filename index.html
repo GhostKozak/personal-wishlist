@@ -17,7 +17,7 @@
       <form id="wishlist-form">
         <div class="form-group">
           <label for="item-name">Name : </label>
-          <input type="text" id="item-name" name="name" required placeholder="Item name">
+          <input type="text" id="item-name" name="name" required placeholder="Item name" autocomplete="off">
         </div>
 
         <div class="form-group">
@@ -50,8 +50,13 @@
         </div>
 
         <div class="form-group">
-          <label for="item-installment">Is Installment :</label>
-          <input type="checkbox" name="isInstallment" id="item-installment">
+          <label for="item-isPurchased">Is Purchased</label>
+          <input type="checkbox" name="isPurchased" id="item-isPurchased">
+        </div>
+
+        <div class="form-group">
+          <label for="item-purchaseDate">Purchase Date</label>
+          <input type="date" name="purchaseDate" id="item-purchaseDate">
         </div>
 
         <div class="form-group">
@@ -73,7 +78,7 @@
         </div>
 
         <div class="form-group">
-          <label for="note">Note : </label>
+          <label for="item-note">Note : </label>
           <textarea name="note" id="item-note" rows="3"></textarea>
         </div>
 

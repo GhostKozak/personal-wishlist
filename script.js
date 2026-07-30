@@ -9,7 +9,8 @@
  * @property {string} createdAt - Eklenme Tarih
  * @property {'important' | 'not-important'} importance - Öncelik durumu
  * @property {'urgent' | 'not-urgent'} urgency - Aciliyet durumu
- * @property {'on'} [isInstallment] - Checkbox işaretli ise 'on' gelir
+ * @property {'on'} [isPurchased] - Checkbox işaretli ise 'on' gelir
+ * @property {date} [purchaseDate]
  * @property {string} [installmentCount] - Taksit sayısı
  * @property {string} [note]
  */
@@ -60,8 +61,8 @@ const calculateBudget = () => {
     return total + Number(item.price);
   }, 0);
 
-  const totalMonthlyInstallment = wishlist.filter(item => item.isInstallment === "on").reduce((acc, item) => {
-    acc += (Number(item.price) / Number(item.installmentCount));
+  const totalMonthlyInstallment = wishlist.filter(item => item.isPurchased === "on").reduce((acc, item) => {
+    acc += (Number(item.price) / Number(item.installmentCount || 1));
     return acc;
   }, 0);
 
@@ -127,6 +128,24 @@ const renderWishlist = () => {
       return "";
     };
 
+    let remainingInstallmentText = "";
+
+    if (element.isPurchased === "on" && element.purchaseDate) {
+      const totalInstallment = Number(element.installmentCount || 1);
+      if (totalInstallment > 1) {
+        const today = new Date();
+        const purchasedDate = new Date(element.purchaseDate)
+        const passedMonths = (today.getFullYear() - purchasedDate.getFullYear()) * 12 + (today.getMonth() - purchasedDate.getMonth());
+        
+        
+        const remaining = Number(element.installmentCount) - passedMonths;
+        
+        remainingInstallmentText = remaining > 0
+        ? `<br/><small style="color: var(--p2-blue)">Kalan : ${remaining} / ${totalInstallment} ay</small>`
+        : `<br /><small style="color: var(--success)">Taksit Bitti 🎉</small>`
+      }
+    }
+
     return ` 
       <tr>
         <td>
@@ -138,7 +157,15 @@ const renderWishlist = () => {
           ${formatCurrency(element.price)} TL
           ${diff()}
         </td>
-        <td>${element.isInstallment == "on" ? `${element.installmentCount} Taksit <br><small>(${formatCurrency(element.price / element.installmentCount)} TL/ay)</small>` : "Peşin"}</td>
+        <td>
+          ${
+            element.isPurchased == "on" ? 
+            `${element.installmentCount !== 0 ? 
+              `Taksit <br><small>${formatCurrency(element.price / element.installmentCount)} TL/ay</small>` : "Peşin"}` 
+            : "-"
+          }
+          ${remainingInstallmentText}
+        </td>
         <td><span class="badge ${priority.class}">${priority.label}</span></td>
         <td>
           <button class="btn-edit" data-id="${element.id}">Edit</button>
@@ -151,7 +178,7 @@ const renderWishlist = () => {
 
 const renderSummaryCards = () => {
   const {wishlistTotal, installmentTotal} = calculateBudget();
-  const Count = wishlist.filter(item => item.isInstallment === "on").length;
+  const Count = wishlist.filter(item => item.isPurchased === "on").length;
   
   TotalPrice.innerHTML = `${formatCurrency(wishlistTotal)} TL`;
   MonthlyInstallment.innerHTML = `${formatCurrency(installmentTotal)} TL / monthly`;
@@ -175,7 +202,8 @@ const updateItem = (id) => {
   FORM.elements.altLink.value = editItem.altLink || "";
   FORM.elements.importance.value = editItem.importance;
   FORM.elements.urgency.value = editItem.urgency;
-  FORM.elements.isInstallment.checked = editItem.isInstallment === "on";
+  FORM.elements.isPurchased.checked = editItem.isPurchased === "on";
+  FORM.elements.purchaseDate.value = editItem.purchaseDate;
   FORM.elements.installmentCount.value = editItem.installmentCount;
   FORM.elements.note.value = editItem.note || "";
   FORM.elements.submitBtn.textContent = 'Update Item';

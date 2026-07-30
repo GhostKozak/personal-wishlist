@@ -293,11 +293,13 @@ td {
 .badge-p3 { background-color: rgba(234, 179, 8, 0.2); color: var(--p3-yellow); border: 1px solid var(--p3-yellow); }
 .badge-p4 { background-color: rgba(110, 118, 129, 0.2); color: var(--p4-gray); border: 1px solid var(--p4-gray); }
 
-.form-group:has(#item-installmentCount) {
+.form-group:has(#item-installmentCount),
+.form-group:has(#item-purchaseDate) {
   display: none;
 }
 
-.form-group:has(#item-installment:checked) ~ .form-group:has(#item-installmentCount) {
+.form-group:has(#item-isPurchased:checked) ~ .form-group:has(#item-installmentCount),
+.form-group:has(#item-isPurchased:checked) ~ .form-group:has(#item-purchaseDate) {
   display: flex;
 }
 
@@ -344,7 +346,8 @@ td {
 }
 
 #wishlist-form button:has( + button:disabled),
-.form-group:has(textarea) {
+.form-group:has(textarea),
+.form-group:has(#item-isPurchased) {
   grid-column: span 2;
 }
 
