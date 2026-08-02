@@ -45,25 +45,96 @@ const formatCurrency = (price) => Number(price || 0).toLocaleString("tr-TR", { m
 const getPriorityInfo = (importance, urgency) => PRIORITY_MAP[`${importance}-${urgency}`] || PRIORITY_MAP['not-important-not-urgent'];
 
 const calculateInstallmentDetails = item => {
-  let remainingInstallmentText = "";
+  if (item.status !== "purchased" || !item.purchaseDate) return null;
+  
+  const totalInstallment = Number(item.installmentCount || 0);
+  if (totalInstallment <= 1) return null;
+  
+  const today = new Date();
+  const purchasedDate = new Date(item.purchaseDate)
+  const passedMonths = (today.getFullYear() - purchasedDate.getFullYear()) * 12 + (today.getMonth() - purchasedDate.getMonth());
 
-  if (item.status === "purchased" && item.purchaseDate) {
-    const totalInstallment = Number(item.installmentCount || 0);
-    if (totalInstallment > 1) {
-      const today = new Date();
-      const purchasedDate = new Date(item.purchaseDate)
-      const passedMonths = (today.getFullYear() - purchasedDate.getFullYear()) * 12 + (today.getMonth() - purchasedDate.getMonth());
-      
-      
-      const remaining = Number(item.installmentCount) - passedMonths;
-      
-      remainingInstallmentText = remaining > 0
-      ? `<br/><small style="color: var(--p2-blue)">Kalan : ${remaining} / ${totalInstallment} ay</small>`
-      : `<br /><small style="color: var(--success)">Taksit Bitti 🎉</small>`
+  return {
+    total: totalInstallment,
+    remaining: totalInstallment - passedMonths
+  }
+}
+
+const calculateBudget = () => {
+  const wishlistTotal = wishlist
+    .filter(item => item.status !== "canceled")
+    .reduce((total, item) => total + Number(item.price), 0);
+
+  const installmentTotal = wishlist
+    .filter(item => (Number(item.installmentCount) > 1 && item.status === "purchased"))
+    .reduce((total, item) => total + (Number(item.price) / Number(item.installmentCount || 1)), 0);
+
+  return { wishlistTotal, installmentTotal };
+}
+
+const renderSummaryCards = () => {
+  const { wishlistTotal, installmentTotal } = calculateBudget();
+  const activeInstallmentItems = wishlist.filter(item => (Number(item.installmentCount) > 1 && item.status === "purchased")).length;
+  
+  UI_TOTAL_PRICE.innerHTML = `${formatCurrency(wishlistTotal)} TL`;
+  UI_MONTHLY_INSTALLMENT.innerHTML = `${formatCurrency(installmentTotal)} TL / monthly`;
+  UI_INSTALLMENT_COUNT.innerHTML = `${activeInstallmentItems} Item`;
+}
+
+const generateTableRow = element => {
+  const priority = getPriorityInfo(element.importance, element.urgency);
+  const priceDiff = Number(element.price) - Number(element.initialPrice || element.price);
+  const installmentDetails = calculateInstallmentDetails(element);
+
+  let diffHtml = "";
+  if (priceDiff > 0) diffHtml = `<br><small class="priceDiff negative">▲ +${formatCurrency(priceDiff)} TL</small>`;
+  else if (priceDiff < 0) diffHtml = `<br><small class="priceDiff positive">▼ -${formatCurrency(Math.abs(priceDiff))} TL</small>`;
+
+  let paymentHtml = "Peşin";
+  if (element.status === "purchased") {
+    if (installmentDetails) {
+      paymentHtml = `Taksit <br><small>${formatCurrency(element.price / installmentDetails.total)} TL/ay</small>`;
+      paymentHtml += installmentDetails.remaining > 0
+        ? `<br/><small style="color: var(--p2-blue)">Kalan: ${installmentDetails.remaining} / ${installmentDetails.total} ay</small>`
+        : `<br /><small style="color: var(--success)">Taksit Bitti 🎉</small>`;
     }
+  } else {
+    paymentHtml = "-";
   }
 
-  return remainingInstallmentText;
+  const rowClass = element.status === "canceled" ? 'style="opacity: 0.5;"' : "";
+
+  return `
+    <tr ${rowClass}>
+      <td>
+        ${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">${element.name}</a>` : element.name}
+        ${element.altLink ? `<a href="${element.altLink}" title="Alt Link" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
+        ${element.note ? `<br><small class="has-tooltip" data-tooltip="${element.note}">📝</small>` : ""}
+      </td>
+      <td>
+        ${formatCurrency(element.price)} TL ${diffHtml}
+      </td>
+      <td>${paymentHtml}</td>
+      <td><span class="badge ${priority.class}">${priority.label}</span></td>
+      <td><span class="status-label">${STATUS_MAP[element.status] || element.status}</span></td>
+      <td>
+        <button class="btn-edit" data-id="${element.id}">Edit</button>
+        <button class="btn-delete" data-id="${element.id}">Delete</button>
+      </td>
+    </tr>
+  `;
+}
+
+const renderWishlist = () => {
+  const sortedList = [...wishlist].sort((a, b) => getPriorityInfo(a.importance, a.urgency).score - getPriorityInfo(b.importance, b.urgency).score);
+  VIEW.innerHTML = sortedList.map(generateTableRow).join('');
+}
+
+const updateWishlist = (updatedArray) => {
+  wishlist = updatedArray;
+  localStorage.setItem('myWishlist', JSON.stringify(wishlist));
+  renderWishlist();
+  renderSummaryCards();
 }
 
 const resetFormState = () => {
@@ -72,128 +143,6 @@ const resetFormState = () => {
   FORM.elements.submitBtn.textContent = 'Save to Wishlist';
   document.querySelector('section.form-section > h2').textContent = "Add New Item";
   FORM.elements.cancelBtn.disabled = true;
-}
-
-const calculateBudget = () => {
-  
-  const totalWishlistCost = wishlist
-    .filter(item => item.status !== "canceled")
-    .reduce((total, item) => total + Number(item.price), 0);
-
-  const totalMonthlyInstallment = wishlist
-    .filter(item => (Number(item.installmentCount) > 1 && item.status === "purchased"))
-    .reduce((acc, item) => {
-      acc += (Number(item.price) / Number(item.installmentCount || 1));
-      return acc;
-    }, 0);
-
-  return {
-    "wishlistTotal" : totalWishlistCost,
-    "installmentTotal" : totalMonthlyInstallment
-  };
-}
-
-FORM.addEventListener('submit', (event) => {
-  event.preventDefault();
-
-  const formData = new FormData(event.target);
-
-  if (currentEditID !== null) {
-    const oldItem = wishlist.find(item => item.id === currentEditID);
-
-    const newUpdatedItem = {
-      ...oldItem, // Değişikliğe uğramayan bütün alanları kopyalamak için, bu olmaz ise inputu bulunmuyan bütün alanlar kaybolur örnek: createdAt ve initialPrice
-      ...Object.fromEntries(formData) // Formdan gelen yeni alanları eski alanların üzerine yazar.
-    };
-    
-    const updatedWishlist = wishlist.map(item => {
-      return item.id === currentEditID ? newUpdatedItem : item
-    })
-
-    wishlist = updatedWishlist;
-  } else {
-    const newWishlistItem = {
-      id: crypto.randomUUID(), 
-      initialPrice: formData.get('price'),
-      createdAt: new Date().toLocaleDateString("tr-TR"),
-      ...Object.fromEntries(formData)
-    };
-
-    wishlist.push(newWishlistItem);
-  }
-  
-  updateWishlist(wishlist);
-  resetFormState();
-});
-
-FORM.elements.cancelBtn.addEventListener('click', () => {resetFormState(); VIEW.scrollIntoView({ block: "center" })});
-
-const renderWishlist = () => {
-  const sortedList = [...wishlist].sort((a, b) => {
-    const priorityA = getPriorityInfo(a.importance, a.urgency).score;
-    const priorityB = getPriorityInfo(b.importance, b.urgency).score;
-    return priorityA - priorityB;
-  });
-
-  VIEW.innerHTML = sortedList.map(element => {
-    const priority = getPriorityInfo(element.importance, element.urgency);
-    const priceDiff = Number(element.price) - Number(element.initialPrice || element.price);
-
-    const diff = () => {
-      if (priceDiff > 0) {
-        return `<br><small class="priceDiff negative">▲ +${formatCurrency(priceDiff)} TL</small>`;
-      } else if (priceDiff < 0) {
-        // Math.abs() ile eksi işaretini çiftlemeyi önlüyoruz
-        return `<br><small class="priceDiff positive">▼ -${formatCurrency(Math.abs(priceDiff))} TL</small>`;
-      }
-      return "";
-    };
-
-    return ` 
-      <tr>
-        <td>
-          ${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">${element.name}</a>` : element.name}
-          ${element.altLink ? `<a href="${element.altLink}" title="Alt Link" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
-          ${element.note ? `<br><small class="has-tooltip" data-tooltip="${element.note}">📝</small>` : ""}
-        </td>
-        <td>
-          ${formatCurrency(element.price)} TL
-          ${diff()}
-        </td>
-        <td>
-          ${
-            element.status === "purchased" ? 
-            `${element.installmentCount > 1 ? 
-              `Taksit <br><small>${formatCurrency(element.price / element.installmentCount)} TL/ay</small>` : "Peşin"}` 
-            : "-"
-          }
-          ${calculateInstallmentDetails(element)}
-        </td>
-        <td><span class="badge ${priority.class}">${priority.label}</span></td>
-        <td><small>${STATUS_MAP[element.status] || element.status}</small></td>
-        <td>
-          <button class="btn-edit" data-id="${element.id}">Edit</button>
-          <button class="btn-delete" data-id="${element.id}">Delete</button>
-        </td>
-      </tr>
-    `
-  }).join('');
-}
-
-const renderSummaryCards = () => {
-  const {wishlistTotal, installmentTotal} = calculateBudget();
-  const count = wishlist.filter(item => (Number(item.installmentCount) > 1 && item.status === "purchased")).length;
-  
-  UI_TOTAL_PRICE.innerHTML = `${formatCurrency(wishlistTotal)} TL`;
-  UI_MONTHLY_INSTALLMENT.innerHTML = `${formatCurrency(installmentTotal)} TL / monthly`;
-  UI_INSTALLMENT_COUNT.innerHTML = `${count} Item`;
-}
-
-const updateWishlist = (updatedArray) => {
-  wishlist = updatedArray;
-  localStorage.setItem('myWishlist', JSON.stringify(wishlist));
-  renderWishlist();
-  renderSummaryCards();
 }
 
 const updateItem = (id) => {
@@ -215,17 +164,32 @@ const updateItem = (id) => {
   FORM.elements.cancelBtn.disabled = false;
 }
 
-VIEW.addEventListener('click', (event) => {
-  if (event.target.classList.contains('btn-delete')) {
-    const newWishlist = wishlist.filter(item => item.id !== event.target.dataset.id);
-    updateWishlist(newWishlist)
+FORM.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const formData = new FormData(event.target);
+  const formEntries = Object.fromEntries(formData);
+
+  if (currentEditID) {
+    wishlist = wishlist.map(item => item.id === currentEditID ? { ...item, ...formEntries } : item);
+  } else {
+    wishlist.push({
+      id: crypto.randomUUID(), 
+      initialPrice: formEntries.price,
+      createdAt: new Date().toLocaleDateString("tr-TR"),
+      ...formEntries
+    });
   }
-  if (event.target.classList.contains('btn-edit')) {
-    // Edit func
-    updateItem(event.target.dataset.id);
-    FORM.scrollIntoView({ block: "center" });
-  }  
-})
+  
+  updateWishlist(wishlist);
+  resetFormState();
+});
+
+FORM.elements.cancelBtn.addEventListener('click', () => { resetFormState(); VIEW.scrollIntoView({ block: "center" }) });
+
+VIEW.addEventListener('click', (event) => {
+  if (event.target.classList.contains('btn-delete')) { updateWishlist(wishlist.filter(item => item.id !== event.target.dataset.id)) }
+  if (event.target.classList.contains('btn-edit')) { updateItem(event.target.dataset.id); FORM.scrollIntoView({ block: "center" }) }
+});
 
 window.addEventListener('DOMContentLoaded', () => {
   renderWishlist();
