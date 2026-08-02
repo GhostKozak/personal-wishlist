@@ -67,6 +67,7 @@ body {
 
 small {
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 header, footer {
@@ -302,8 +303,8 @@ input[type="date"] {
   padding: .55rem 1rem;
 }
 
-.form-group:has(option[value="option-purchased"]:checked) ~ .form-group:has(#item-installmentCount),
-.form-group:has(option[value="option-purchased"]:checked) ~ .form-group:has(#item-purchaseDate) {
+.form-group:has(option[value="purchased"]:checked) ~ .form-group:has(#item-installmentCount),
+.form-group:has(option[value="purchased"]:checked) ~ .form-group:has(#item-purchaseDate) {
   display: flex;
 }
 

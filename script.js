@@ -17,34 +17,53 @@
 
 const FORM = document.getElementById('wishlist-form');
 const VIEW = document.getElementById('wishlist-view');
-const TotalPrice = document.getElementById('total-price');
-const MonthlyInstallment = document.getElementById('monthly-installment');
-const InstallmentCount = document.getElementById('installment-count');
+const UI_TOTAL_PRICE = document.getElementById('total-price');
+const UI_MONTHLY_INSTALLMENT = document.getElementById('monthly-installment');
+const UI_INSTALLMENT_COUNT = document.getElementById('installment-count');
 
 let currentEditID = null;
-
 /** @type {WishlistItem[]} */
 let wishlist = JSON.parse(localStorage.getItem('myWishlist')) || [];
 
-const formatCurrency = (price) => {
-  return Number(price || 0).toLocaleString("tr-TR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })
+const PRIORITY_MAP = {
+  'important-urgent': { score: 1, label: 'P1: Urgent & Important', class: 'badge-p1' },
+  'important-not-urgent': { score: 2, label: 'P2: Important', class: 'badge-p2' },
+  'not-important-urgent': { score: 3, label: 'P3: Urgent', class: 'badge-p3' },
+  'not-important-not-urgent': { score: 4, label: 'P4: Someday', class: 'badge-p4' }
 }
 
-const getPriorityInfo = (importance, urgency) => {
-  if (importance === 'important' && urgency === 'urgent') {
-    return { score: 1, label: 'P1: Urgent & Important', class: 'badge-p1' };
-  }
-  if (importance === 'important' && urgency === 'not-urgent') {
-    return { score: 2, label: 'P2: Important', class: 'badge-p2' };
-  }
-  if (importance === 'not-important' && urgency === 'urgent') {
-    return { score: 3, label: 'P3: Urgent', class: 'badge-p3' };
+const STATUS_MAP = {
+  wishlist: '💭 Wishlist',
+  researching: '🔍 Researching',
+  purchased: '✅ Purchased',
+  canceled: '❌ Canceled'
+}
+
+
+const formatCurrency = (price) => Number(price || 0).toLocaleString("tr-TR", { minimumFractionDigits: 2,maximumFractionDigits: 2 });
+
+const getPriorityInfo = (importance, urgency) => PRIORITY_MAP[`${importance}-${urgency}`] || PRIORITY_MAP['not-important-not-urgent'];
+
+const calculateInstallmentDetails = item => {
+  let remainingInstallmentText = "";
+
+  if (item.status === "purchased" && item.purchaseDate) {
+    const totalInstallment = Number(item.installmentCount || 0);
+    if (totalInstallment > 1) {
+      const today = new Date();
+      const purchasedDate = new Date(item.purchaseDate)
+      const passedMonths = (today.getFullYear() - purchasedDate.getFullYear()) * 12 + (today.getMonth() - purchasedDate.getMonth());
+      
+      
+      const remaining = Number(item.installmentCount) - passedMonths;
+      
+      remainingInstallmentText = remaining > 0
+      ? `<br/><small style="color: var(--p2-blue)">Kalan : ${remaining} / ${totalInstallment} ay</small>`
+      : `<br /><small style="color: var(--success)">Taksit Bitti 🎉</small>`
+    }
   }
 
-  return { score: 4, label: 'P4: Someday', class: 'badge-p4' };
+  return remainingInstallmentText;
 }
 
 const resetFormState = () => {
@@ -58,13 +77,15 @@ const resetFormState = () => {
 const calculateBudget = () => {
   
   const totalWishlistCost = wishlist
-  .filter(item => item.status !== "canceled")
-  .reduce((total, item) => total + Number(item.price), 0);
+    .filter(item => item.status !== "canceled")
+    .reduce((total, item) => total + Number(item.price), 0);
 
-  const totalMonthlyInstallment = wishlist.filter(item => item.status === "purchased").reduce((acc, item) => {
-    acc += (Number(item.price) / Number(item.installmentCount || 1));
-    return acc;
-  }, 0);
+  const totalMonthlyInstallment = wishlist
+    .filter(item => (Number(item.installmentCount) > 1 && item.status === "purchased"))
+    .reduce((acc, item) => {
+      acc += (Number(item.price) / Number(item.installmentCount || 1));
+      return acc;
+    }, 0);
 
   return {
     "wishlistTotal" : totalWishlistCost,
@@ -128,24 +149,6 @@ const renderWishlist = () => {
       return "";
     };
 
-    let remainingInstallmentText = "";
-
-    if (element.status === "purchased" && element.purchaseDate) {
-      const totalInstallment = Number(element.installmentCount || 1);
-      if (totalInstallment > 1) {
-        const today = new Date();
-        const purchasedDate = new Date(element.purchaseDate)
-        const passedMonths = (today.getFullYear() - purchasedDate.getFullYear()) * 12 + (today.getMonth() - purchasedDate.getMonth());
-        
-        
-        const remaining = Number(element.installmentCount) - passedMonths;
-        
-        remainingInstallmentText = remaining > 0
-        ? `<br/><small style="color: var(--p2-blue)">Kalan : ${remaining} / ${totalInstallment} ay</small>`
-        : `<br /><small style="color: var(--success)">Taksit Bitti 🎉</small>`
-      }
-    }
-
     return ` 
       <tr>
         <td>
@@ -159,15 +162,15 @@ const renderWishlist = () => {
         </td>
         <td>
           ${
-            element.status == "purchased" ? 
-            `${element.installmentCount !== 0 ? 
+            element.status === "purchased" ? 
+            `${element.installmentCount > 1 ? 
               `Taksit <br><small>${formatCurrency(element.price / element.installmentCount)} TL/ay</small>` : "Peşin"}` 
             : "-"
           }
-          ${remainingInstallmentText}
+          ${calculateInstallmentDetails(element)}
         </td>
         <td><span class="badge ${priority.class}">${priority.label}</span></td>
-        <td>${element.status}</td>
+        <td><small>${STATUS_MAP[element.status] || element.status}</small></td>
         <td>
           <button class="btn-edit" data-id="${element.id}">Edit</button>
           <button class="btn-delete" data-id="${element.id}">Delete</button>
@@ -179,11 +182,11 @@ const renderWishlist = () => {
 
 const renderSummaryCards = () => {
   const {wishlistTotal, installmentTotal} = calculateBudget();
-  const Count = wishlist.filter(item => item.status === "purchased").length;
+  const count = wishlist.filter(item => (Number(item.installmentCount) > 1 && item.status === "purchased")).length;
   
-  TotalPrice.innerHTML = `${formatCurrency(wishlistTotal)} TL`;
-  MonthlyInstallment.innerHTML = `${formatCurrency(installmentTotal)} TL / monthly`;
-  InstallmentCount.innerHTML = `${Count} Item`;
+  UI_TOTAL_PRICE.innerHTML = `${formatCurrency(wishlistTotal)} TL`;
+  UI_MONTHLY_INSTALLMENT.innerHTML = `${formatCurrency(installmentTotal)} TL / monthly`;
+  UI_INSTALLMENT_COUNT.innerHTML = `${count} Item`;
 }
 
 const updateWishlist = (updatedArray) => {
