@@ -302,8 +302,6 @@ input[type="date"] {
   padding: .55rem 1rem;
 }
 
-.form-group:has(option[value="option-installment"]:checked) ~ .form-group:has(#item-installmentCount),
-.form-group:has(option[value="option-installment"]:checked) ~ .form-group:has(#item-purchaseDate),
 .form-group:has(option[value="option-purchased"]:checked) ~ .form-group:has(#item-installmentCount),
 .form-group:has(option[value="option-purchased"]:checked) ~ .form-group:has(#item-purchaseDate) {
   display: flex;

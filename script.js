@@ -9,7 +9,7 @@
  * @property {string} createdAt - Eklenme Tarih
  * @property {'important' | 'not-important'} importance - Öncelik durumu
  * @property {'urgent' | 'not-urgent'} urgency - Aciliyet durumu
- * @property {'on'} [isPurchased] - Checkbox işaretli ise 'on' gelir
+ * @property {string} [status]
  * @property {date} [purchaseDate]
  * @property {string} [installmentCount] - Taksit sayısı
  * @property {string} [note]
@@ -57,11 +57,11 @@ const resetFormState = () => {
 
 const calculateBudget = () => {
   
-  const totalWishlistCost = wishlist.reduce((total, item) => {
-    return total + Number(item.price);
-  }, 0);
+  const totalWishlistCost = wishlist
+  .filter(item => item.status !== "canceled")
+  .reduce((total, item) => total + Number(item.price), 0);
 
-  const totalMonthlyInstallment = wishlist.filter(item => item.isPurchased === "on").reduce((acc, item) => {
+  const totalMonthlyInstallment = wishlist.filter(item => item.status === "purchased").reduce((acc, item) => {
     acc += (Number(item.price) / Number(item.installmentCount || 1));
     return acc;
   }, 0);
@@ -130,7 +130,7 @@ const renderWishlist = () => {
 
     let remainingInstallmentText = "";
 
-    if (element.isPurchased === "on" && element.purchaseDate) {
+    if (element.status === "purchased" && element.purchaseDate) {
       const totalInstallment = Number(element.installmentCount || 1);
       if (totalInstallment > 1) {
         const today = new Date();
@@ -159,7 +159,7 @@ const renderWishlist = () => {
         </td>
         <td>
           ${
-            element.isPurchased == "on" ? 
+            element.status == "purchased" ? 
             `${element.installmentCount !== 0 ? 
               `Taksit <br><small>${formatCurrency(element.price / element.installmentCount)} TL/ay</small>` : "Peşin"}` 
             : "-"
@@ -167,6 +167,7 @@ const renderWishlist = () => {
           ${remainingInstallmentText}
         </td>
         <td><span class="badge ${priority.class}">${priority.label}</span></td>
+        <td>${element.status}</td>
         <td>
           <button class="btn-edit" data-id="${element.id}">Edit</button>
           <button class="btn-delete" data-id="${element.id}">Delete</button>
@@ -178,7 +179,7 @@ const renderWishlist = () => {
 
 const renderSummaryCards = () => {
   const {wishlistTotal, installmentTotal} = calculateBudget();
-  const Count = wishlist.filter(item => item.isPurchased === "on").length;
+  const Count = wishlist.filter(item => item.status === "purchased").length;
   
   TotalPrice.innerHTML = `${formatCurrency(wishlistTotal)} TL`;
   MonthlyInstallment.innerHTML = `${formatCurrency(installmentTotal)} TL / monthly`;
@@ -202,9 +203,9 @@ const updateItem = (id) => {
   FORM.elements.altLink.value = editItem.altLink || "";
   FORM.elements.importance.value = editItem.importance;
   FORM.elements.urgency.value = editItem.urgency;
-  FORM.elements.isPurchased.checked = editItem.isPurchased === "on";
   FORM.elements.purchaseDate.value = editItem.purchaseDate;
   FORM.elements.installmentCount.value = editItem.installmentCount;
+  FORM.elements.status.value = editItem.status;
   FORM.elements.note.value = editItem.note || "";
   FORM.elements.submitBtn.textContent = 'Update Item';
   document.querySelector('section.form-section > h2').textContent = "Update Item";
