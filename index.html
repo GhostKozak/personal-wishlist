@@ -50,8 +50,14 @@
         </div>
 
         <div class="form-group">
-          <label for="item-isPurchased">Is Purchased</label>
-          <input type="checkbox" name="isPurchased" id="item-isPurchased">
+          <label for="item-status">Status : </label>
+          <select name="status" id="item-status">
+            <option value="option-whistlist">💭 Wishlist (İstek Listesinde)</option>
+            <option value="option-researching">🔍 Researching (Araştırılıyor)</option>
+            <option value="option-installment">⏳ Active Installment (Taksiti Devam Ediyor)</option>
+            <option value="option-purchased">✅ Purchased (Alındı)</option>
+            <option value="option-canceled">❌ Canceled (Vazgeçildi)</option>
+          </select>
         </div>
 
         <div class="form-group">

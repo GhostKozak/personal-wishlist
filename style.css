@@ -298,8 +298,14 @@ td {
   display: none;
 }
 
-.form-group:has(#item-isPurchased:checked) ~ .form-group:has(#item-installmentCount),
-.form-group:has(#item-isPurchased:checked) ~ .form-group:has(#item-purchaseDate) {
+input[type="date"] {
+  padding: .55rem 1rem;
+}
+
+.form-group:has(option[value="option-installment"]:checked) ~ .form-group:has(#item-installmentCount),
+.form-group:has(option[value="option-installment"]:checked) ~ .form-group:has(#item-purchaseDate),
+.form-group:has(option[value="option-purchased"]:checked) ~ .form-group:has(#item-installmentCount),
+.form-group:has(option[value="option-purchased"]:checked) ~ .form-group:has(#item-purchaseDate) {
   display: flex;
 }
 
@@ -347,7 +353,7 @@ td {
 
 #wishlist-form button:has( + button:disabled),
 .form-group:has(textarea),
-.form-group:has(#item-isPurchased) {
+.form-group:has(#item-status) {
   grid-column: span 2;
 }
 
