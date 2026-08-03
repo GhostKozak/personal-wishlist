@@ -213,29 +213,13 @@ const updateRateUI = (isLive, lastUpdatedText) => {
 };
 
 const getPriorityBudgetDistribution = () => {
-  const items = wishlist.filter(item => item.status !== "canceled")
   let priTotal = {p1: 0, p2: 0, p3: 0, p4: 0};
-  const total = items.forEach((item) => {
-    const priorityScore = getPriorityInfo(item.importance, item.urgency).score;
-
-    switch (priorityScore) {
-      case 1:
-        priTotal.p1 += currencyToTRY(item.price, item.currency);
-        break;
-      case 2:
-        priTotal.p2 += currencyToTRY(item.price, item.currency);
-        break;
-      case 3:
-        priTotal.p3 += currencyToTRY(item.price, item.currency);
-        break;
-      case 4:
-        priTotal.p4 += currencyToTRY(item.price, item.currency);
-        break;
-    
-      default:
-        break;
-    }
-  });
+  wishlist
+    .filter(item => item.status !== "canceled")
+    .forEach(item => {
+      const key = `p${getPriorityInfo(item.importance, item.urgency).score}`;
+      priTotal[key] += currencyToTRY(item.price, item.currency);
+    });
   return Object.values(priTotal);
 }
 
