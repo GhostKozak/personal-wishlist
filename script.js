@@ -27,8 +27,8 @@ const UI_FILTER_PRIORITY = document.getElementById('filter-priority');
 const UI_EXPORT_BUTTON = document.getElementById('btn-export');
 const UI_IMPORT_BUTTON = document.getElementById('btn-import-trigger');
 const UI_FILE_IMPORT = document.getElementById('file-import');
-const EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
 
+let EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
 let currentEditID = null;
 let filters = { search: '', status: 'all', priority: 'all' };
 /** @type {WishlistItem[]} */
@@ -53,6 +53,51 @@ const formatCurrency = (price) => Number(price || 0).toLocaleString("tr-TR", { m
 const getPriorityInfo = (importance, urgency) => PRIORITY_MAP[`${importance}-${urgency}`] || PRIORITY_MAP['not-important-not-urgent'];
 
 const currencyToTRY = (price, currency) => Number(price || 0) * (EXCHANGE_RATES[currency] || 1);
+
+const fetchExchangeRates = async () => {
+  const ONE_HOUR = 60 * 60 * 1000;
+  const cachedData = JSON.parse(localStorage.getItem('wishlist_exchange_rates'));
+  const now = Date.now();
+
+  if (cachedData && (now - cachedData.timestamp < ONE_HOUR)) {
+    EXCHANGE_RATES = cachedData.rates;
+    console.log('⚡ Kurlar localStorage Önbelleğinden Alındı (API İsteği Tasarrufu Yapıldı):', EXCHANGE_RATES);
+
+    renderWishlist();
+    renderSummaryCards();
+    return;
+  }
+
+  try {
+    const response = await fetch('https://v6.exchangerate-api.com/v6/0778a08612dec62fae4971a6/latest/USD');
+    if (!response.ok) throw new Error('Kur servisine ulaşılamadı');
+
+    const data = await response.json();
+
+    if (data.result === 'success') {
+      const rates = data.conversion_rates;
+      const usdToTry = rates.TRY;
+      const eurToTRY = rates.TRY / rates.EUR;
+
+      EXCHANGE_RATES = {
+        USD: Number(usdToTry.toFixed(2)),
+        EUR: Number(eurToTRY.toFixed(2))
+      };
+
+      localStorage.setItem('wishlist_exchange_rates', JSON.stringify({
+        rates: EXCHANGE_RATES,
+        timestamp: now
+      }));
+
+      console.log('🌐 Canlı Kurlar API’den Çekildi ve 1 Saatliğine Önbelleklendi:', EXCHANGE_RATES);
+
+      renderWishlist();
+      renderSummaryCards();
+    }
+  } catch (error) {
+    console.warn('Canlı kurlar alınamadı, yedek kurlar kullanılıyor:', error);
+  }
+}
 
 const calculateInstallmentDetails = item => {
   if (item.status !== "purchased" || !item.purchaseDate) return null;
@@ -272,4 +317,6 @@ UI_FILE_IMPORT.addEventListener('change', (event) => importJSON(event));
 window.addEventListener('DOMContentLoaded', () => {
   renderWishlist();
   renderSummaryCards();
+
+  fetchExchangeRates();
 });
