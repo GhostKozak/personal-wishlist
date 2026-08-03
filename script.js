@@ -5,6 +5,7 @@
  * @property {string} [link] - Ürün linki
  * @property {string} [altLink] - Alt. Ürün linki
  * @property {string} price - Ürün fiyatı
+ * @property {string} currency
  * @property {string} initialPrice - İlk Eklendiği Fiyat
  * @property {string} createdAt - Eklenme Tarih
  * @property {'important' | 'not-important'} importance - Öncelik durumu
@@ -23,6 +24,7 @@ const UI_INSTALLMENT_COUNT = document.getElementById('installment-count');
 const UI_SEARCH_INPUT = document.getElementById('search-input');
 const UI_FILTER_STATUS = document.getElementById('filter-status');
 const UI_FILTER_PRIORITY = document.getElementById('filter-priority');
+const EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
 
 let currentEditID = null;
 let filters = { search: '', status: 'all', priority: 'all' };
@@ -47,6 +49,8 @@ const formatCurrency = (price) => Number(price || 0).toLocaleString("tr-TR", { m
 
 const getPriorityInfo = (importance, urgency) => PRIORITY_MAP[`${importance}-${urgency}`] || PRIORITY_MAP['not-important-not-urgent'];
 
+const currencyToTRY = (price, currency) => Number(price || 0) * (EXCHANGE_RATES[currency] || 1);
+
 const calculateInstallmentDetails = item => {
   if (item.status !== "purchased" || !item.purchaseDate) return null;
   
@@ -66,11 +70,11 @@ const calculateInstallmentDetails = item => {
 const calculateBudget = () => {
   const wishlistTotal = wishlist
     .filter(item => item.status !== "canceled")
-    .reduce((total, item) => total + Number(item.price), 0);
+    .reduce((total, item) => total + currencyToTRY(item.price, item.currency), 0);
 
   const installmentTotal = wishlist
     .filter(item => (Number(item.installmentCount) > 1 && item.status === "purchased"))
-    .reduce((total, item) => total + (Number(item.price) / Number(item.installmentCount || 1)), 0);
+    .reduce((total, item) => total + (currencyToTRY(item.price, item.currency) / Number(item.installmentCount || 1)), 0);
 
   return { wishlistTotal, installmentTotal };
 }
@@ -86,7 +90,7 @@ const renderSummaryCards = () => {
 
 const generateTableRow = element => {
   const priority = getPriorityInfo(element.importance, element.urgency);
-  const priceDiff = Number(element.price) - Number(element.initialPrice || element.price);
+  const priceDiff = currencyToTRY(element.price, element.currency) - currencyToTRY(element.initialPrice || element.price, element.currency);
   const installmentDetails = calculateInstallmentDetails(element);
 
   let diffHtml = "";
@@ -115,7 +119,7 @@ const generateTableRow = element => {
         ${element.note ? `<br><small class="has-tooltip" data-tooltip="${element.note}">📝</small>` : ""}
       </td>
       <td>
-        ${formatCurrency(element.price)} TL ${diffHtml}
+        ${formatCurrency(element.price)} ${element.currency || "TL"} ${diffHtml}
       </td>
       <td>${paymentHtml}</td>
       <td><span class="badge ${priority.class}">${priority.label}</span></td>
@@ -170,6 +174,7 @@ const updateItem = (id) => {
   FORM.elements.urgency.value = editItem.urgency;
   FORM.elements.purchaseDate.value = editItem.purchaseDate;
   FORM.elements.installmentCount.value = editItem.installmentCount;
+  FORM.elements.currency.value = editItem.currency || 'TRY';
   FORM.elements.status.value = editItem.status;
   FORM.elements.note.value = editItem.note || "";
   FORM.elements.submitBtn.textContent = 'Update Item';
