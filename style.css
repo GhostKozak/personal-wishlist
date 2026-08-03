@@ -409,3 +409,25 @@ input[type="date"] {
 .filter-section #search-input {
   grid-column: span 2;
 }
+
+.empty-state {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  gap: 0.5rem;
+}
+
+.empty-state span {
+  font-size: 2.5rem;
+}
+.table-section:has(#wishlist-view:empty) table {
+  display: none;
+}
+
+.table-section:has(#wishlist-view:empty) .empty-state {
+  display: flex;
+}
