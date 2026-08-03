@@ -165,20 +165,16 @@ const resetFormState = () => {
 const updateItem = (id) => {
   const editItem = wishlist.find(item => item.id === id);
   currentEditID = editItem.id;
+  
 
-  FORM.elements.name.value = editItem.name;
-  FORM.elements.price.value = editItem.price;
-  FORM.elements.link.value = editItem.link;
-  FORM.elements.altLink.value = editItem.altLink || "";
-  FORM.elements.importance.value = editItem.importance;
-  FORM.elements.urgency.value = editItem.urgency;
-  FORM.elements.purchaseDate.value = editItem.purchaseDate;
-  FORM.elements.installmentCount.value = editItem.installmentCount;
-  FORM.elements.currency.value = editItem.currency || 'TRY';
-  FORM.elements.status.value = editItem.status;
-  FORM.elements.note.value = editItem.note || "";
-  FORM.elements.submitBtn.textContent = 'Update Item';
+  Object.entries(editItem).forEach( ([key, value]) => {
+    if (FORM.elements[key]) {
+      FORM.elements[key].value = value || "";
+    }
+  });
+
   document.querySelector('section.form-section > h2').textContent = "Update Item";
+  FORM.elements.submitBtn.textContent = 'Update Item';
   FORM.elements.cancelBtn.disabled = false;
 }
 
