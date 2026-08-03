@@ -27,6 +27,11 @@ const UI_FILTER_PRIORITY = document.getElementById('filter-priority');
 const UI_EXPORT_BUTTON = document.getElementById('btn-export');
 const UI_IMPORT_BUTTON = document.getElementById('btn-import-trigger');
 const UI_FILE_IMPORT = document.getElementById('file-import');
+const UI_RATE_USD = document.getElementById('rate-usd');
+const UI_RATE_EUR = document.getElementById('rate-eur');
+const UI_RATE_STATUS = document.getElementById('rate-status-badge');
+const UI_RATE_LAST_UPDATED = document.getElementById('rate-last-updated');
+const UI_BTN_EDIT_RATES = document.getElementById('btn-edit-rates');
 
 let EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
 let currentEditID = null;
@@ -59,13 +64,15 @@ const fetchExchangeRates = async () => {
   const cachedData = JSON.parse(localStorage.getItem('wishlist_exchange_rates'));
   const now = Date.now();
 
-  if (cachedData && (now - cachedData.timestamp < ONE_HOUR)) {
-    EXCHANGE_RATES = cachedData.rates;
-    console.log('⚡ Kurlar localStorage Önbelleğinden Alındı (API İsteği Tasarrufu Yapıldı):', EXCHANGE_RATES);
-
-    renderWishlist();
-    renderSummaryCards();
-    return;
+  if (cachedData) {
+    if (cachedData.isManual || (now - cachedData.timestamp < ONE_HOUR)) {
+      EXCHANGE_RATES = cachedData.rates;
+      const dateStr = new Date(cachedData.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      updateRateUI(!cachedData.isManual, `${cachedData.isManual ? 'Manuel' : 'Cache'}: ${dateStr}`);
+      renderWishlist();
+      renderSummaryCards();
+      return;
+    }
   }
 
   try {
@@ -76,28 +83,46 @@ const fetchExchangeRates = async () => {
 
     if (data.result === 'success') {
       const rates = data.conversion_rates;
-      const usdToTry = rates.TRY;
-      const eurToTRY = rates.TRY / rates.EUR;
 
       EXCHANGE_RATES = {
-        USD: Number(usdToTry.toFixed(2)),
-        EUR: Number(eurToTRY.toFixed(2))
+        TRY: 1,
+        USD: Number(rates.TRY.toFixed(2)),
+        EUR: Number((rates.TRY / rates.EUR).toFixed(2))
       };
 
       localStorage.setItem('wishlist_exchange_rates', JSON.stringify({
         rates: EXCHANGE_RATES,
-        timestamp: now
+        timestamp: now,
+        isManual: false
       }));
 
-      console.log('🌐 Canlı Kurlar API’den Çekildi ve 1 Saatliğine Önbelleklendi:', EXCHANGE_RATES);
+      const dateStr = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      updateRateUI(true, `Canlı: ${dateStr}`);
 
       renderWishlist();
       renderSummaryCards();
     }
   } catch (error) {
-    console.warn('Canlı kurlar alınamadı, yedek kurlar kullanılıyor:', error);
+    console.warn('Canlı kur alınamadı:', error);
+    updateRateUI(false, '⚠️ Canlı Kur Alınamadı!');
   }
 }
+
+const updateRateUI = (isLive, lastUpdatedText) => {
+  if (UI_RATE_USD) UI_RATE_USD.textContent = EXCHANGE_RATES.USD;
+  if (UI_RATE_EUR) UI_RATE_EUR.textContent = EXCHANGE_RATES.EUR;
+  if (UI_RATE_LAST_UPDATED) UI_RATE_LAST_UPDATED.textContent = lastUpdatedText;
+
+  if (UI_RATE_STATUS) {
+    if (isLive) {
+      UI_RATE_STATUS.className = 'badge-status online';
+      UI_RATE_STATUS.title = 'Kurlar canlı API üzerinden güncel tutuluyor.';
+    } else {
+      UI_RATE_STATUS.className = 'badge-status warning';
+      UI_RATE_STATUS.title = 'Canlı kur bağlantısı kurulamadı! Sabit/Manuel kurlar kullanılıyor.';
+    }
+  }
+};
 
 const calculateInstallmentDetails = item => {
   if (item.status !== "purchased" || !item.purchaseDate) return null;
@@ -313,6 +338,29 @@ UI_EXPORT_BUTTON.addEventListener('click', () => exportJSON());
 UI_IMPORT_BUTTON.addEventListener('click', (event) => UI_FILE_IMPORT.click());
 
 UI_FILE_IMPORT.addEventListener('change', (event) => importJSON(event));
+
+UI_BTN_EDIT_RATES?.addEventListener('click', () => {
+  const newUsd = prompt('Güncel USD Kuru (TL):', EXCHANGE_RATES.USD);
+  const newEur = prompt('Güncel EUR Kuru (TL):', EXCHANGE_RATES.EUR);
+
+  if (newUsd && newEur && !isNaN(newUsd) && !isNaN(newEur)) {
+    EXCHANGE_RATES = {
+      TRY: 1,
+      USD: Number(newUsd),
+      EUR: Number(newEur)
+    };
+
+    localStorage.setItem('wishlist_exchange_rates', JSON.stringify({
+      rates: EXCHANGE_RATES,
+      timestamp: Date.now(),
+      isManual: true // Manuel girildiğini işaretle
+    }));
+
+    updateRateUI(false, 'Manuel Ayarlandı');
+    updateWishlist(wishlist);
+    alert('Kurlar manuel olarak güncellendi! 🎉');
+  }
+});
 
 window.addEventListener('DOMContentLoaded', () => {
   renderWishlist();
