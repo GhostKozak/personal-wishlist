@@ -118,7 +118,13 @@
     </section>
 
     <section class="table-section">
-      <h2>My Wishlist</h2>
+      <h2>My Wishlist
+        <div class="imp-exp-section">
+          <button id="btn-export">📥 Export JSON</button>
+          <button id="btn-import-trigger">📤 Import JSON</button>
+          <input type="file" id="file-import" accept=".json" style="display: none;">
+        </div>
+      </h2>
       <aside class="filter-section">
         <input type="text" name="filterSearch" id="search-input" placeholder="Wishlist name or note content">
         <select name="filterStatus" id="filter-status">

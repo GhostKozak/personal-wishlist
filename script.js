@@ -24,6 +24,9 @@ const UI_INSTALLMENT_COUNT = document.getElementById('installment-count');
 const UI_SEARCH_INPUT = document.getElementById('search-input');
 const UI_FILTER_STATUS = document.getElementById('filter-status');
 const UI_FILTER_PRIORITY = document.getElementById('filter-priority');
+const UI_EXPORT_BUTTON = document.getElementById('btn-export');
+const UI_IMPORT_BUTTON = document.getElementById('btn-import-trigger');
+const UI_FILE_IMPORT = document.getElementById('file-import');
 const EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
 
 let currentEditID = null;
@@ -100,7 +103,7 @@ const generateTableRow = element => {
   let paymentHtml = "Peşin";
   if (element.status === "purchased") {
     if (installmentDetails) {
-      paymentHtml = `Taksit <br><small>${formatCurrency(element.price / installmentDetails.total)} TL/ay</small>`;
+      paymentHtml = `Taksit <br><small>${formatCurrency(currencyToTRY(element.price, element.currency) / installmentDetails.total)} TL/ay</small>`;
       paymentHtml += installmentDetails.remaining > 0
         ? `<br/><small style="color: var(--p2-blue)">Kalan: ${installmentDetails.remaining} / ${installmentDetails.total} ay</small>`
         : `<br /><small style="color: var(--success)">Taksit Bitti 🎉</small>`;
@@ -178,6 +181,46 @@ const updateItem = (id) => {
   FORM.elements.cancelBtn.disabled = false;
 }
 
+const exportJSON = () => {
+  if (wishlist.length === 0) return alert('İndirilecek veri yok!');
+  
+  const jsonString = JSON.stringify(wishlist, null, 2);
+  const blob = new Blob([jsonString], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `wishlist-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+const importJSON = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    try {
+      const importedData = JSON.parse(e.target.result);
+
+      if (Array.isArray(importedData)) {
+        updateWishlist(importedData);
+        alert('Veriler başarıyla yüklendi! 🎉');
+      } else {
+        alert('Geçersiz dosya biçimi!');
+      }
+    } catch (err) {
+      alert('JSON dosyası okunamadı!');
+    }
+  }
+
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
 FORM.addEventListener('submit', (event) => {
   event.preventDefault();
   const formData = new FormData(event.target);
@@ -219,6 +262,12 @@ UI_FILTER_PRIORITY.addEventListener('change', (event) => {
   filters.priority = event.target.value;
   renderWishlist();
 });
+
+UI_EXPORT_BUTTON.addEventListener('click', () => exportJSON());
+
+UI_IMPORT_BUTTON.addEventListener('click', (event) => UI_FILE_IMPORT.click());
+
+UI_FILE_IMPORT.addEventListener('change', (event) => importJSON(event));
 
 window.addEventListener('DOMContentLoaded', () => {
   renderWishlist();

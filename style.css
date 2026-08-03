@@ -436,3 +436,30 @@ input[type="date"] {
 .table-section:has(#wishlist-view:empty) .empty-state {
   display: flex;
 }
+
+.table-section h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem;
+}
+
+.imp-exp-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.imp-exp-section button {
+  background: none;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 200ms ease;
+}
+
+.imp-exp-section button:hover {
+  opacity: 1;
+}
