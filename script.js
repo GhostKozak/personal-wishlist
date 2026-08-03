@@ -38,6 +38,7 @@ let currentEditID = null;
 let filters = { search: '', status: 'all', priority: 'all' };
 /** @type {WishlistItem[]} */
 let wishlist = JSON.parse(localStorage.getItem('myWishlist')) || [];
+let priorityChart = null;
 
 const PRIORITY_MAP = {
   'important-urgent': { score: 1, label: 'P1: Urgent & Important', class: 'badge-p1' },
@@ -108,6 +109,93 @@ const fetchExchangeRates = async () => {
   }
 }
 
+const renderPriorityChart = () => {
+  const ctx = document.getElementById('priority-chart');
+  if (!ctx) return;
+
+  const dataValues = getPriorityBudgetDistribution();
+
+  // 1. Önceki grafik nesnesini temizle
+  if (priorityChart) {
+    priorityChart.destroy();
+  }
+
+  // 2. Yeni Pie Chart oluştur
+  priorityChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['P1: Urgent & Important', 'P2: Important', 'P3: Urgent', 'P4: Someday'],
+      datasets: [{
+        data: dataValues,
+        backgroundColor: ['#ff6384', '#36a2eb', '#ffcd67', '#64748b'],
+        borderWidth: 0,
+        borderColor: 'transparent',
+        hoverOffset: 15
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            boxWidth: 15,
+            padding: 25,
+            font: { size: 16 },
+            generateLabels: (chart) => {
+              const { labels, datasets } = chart.data;
+              if (!labels?.length || !datasets?.length) return [];
+
+              const dataset = datasets[0];
+
+              return labels.map((label, index) => {
+                const value = dataset.data[index] || 0;
+                const isHidden = !chart.getDataVisibility(index);
+
+                return {
+                  text: `${label}: ${formatCurrency(value)} TL`,
+                  fillStyle: dataset.backgroundColor[index],
+                  fontColor: '#cbd5e1',
+                  hidden: isHidden,
+                  index
+                };
+              });
+            }
+          },
+          onHover: handleHover,
+          onLeave: handleLeave
+        },
+        tooltip: {
+          backgroundColor: '#0f172a',
+          titleColor: '#f8fafc',
+          bodyColor: '#cbd5e1',
+          borderColor: '#334155',
+          borderWidth: 1,
+          padding: 10,
+          callbacks: {
+            label: (context) => ` ${context.label}: ${formatCurrency(context.raw)} TL`
+          }
+        }
+      }
+    }
+  });
+};
+
+function handleHover(evt, item, legend) {
+  legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
+    colors[index] = index === item.index || color.length === 9 ? color : color + '4D';
+  });
+  legend.chart.update();
+}
+
+function handleLeave(evt, item, legend) {
+  legend.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
+    colors[index] = color.length === 9 ? color.slice(0, -2) : color;
+  });
+  legend.chart.update();
+}
+
 const updateRateUI = (isLive, lastUpdatedText) => {
   if (UI_RATE_USD) UI_RATE_USD.textContent = EXCHANGE_RATES.USD;
   if (UI_RATE_EUR) UI_RATE_EUR.textContent = EXCHANGE_RATES.EUR;
@@ -123,6 +211,33 @@ const updateRateUI = (isLive, lastUpdatedText) => {
     }
   }
 };
+
+const getPriorityBudgetDistribution = () => {
+  const items = wishlist.filter(item => item.status !== "canceled")
+  let priTotal = {p1: 0, p2: 0, p3: 0, p4: 0};
+  const total = items.forEach((item) => {
+    const priorityScore = getPriorityInfo(item.importance, item.urgency).score;
+
+    switch (priorityScore) {
+      case 1:
+        priTotal.p1 += currencyToTRY(item.price, item.currency);
+        break;
+      case 2:
+        priTotal.p2 += currencyToTRY(item.price, item.currency);
+        break;
+      case 3:
+        priTotal.p3 += currencyToTRY(item.price, item.currency);
+        break;
+      case 4:
+        priTotal.p4 += currencyToTRY(item.price, item.currency);
+        break;
+    
+      default:
+        break;
+    }
+  });
+  return Object.values(priTotal);
+}
 
 const calculateInstallmentDetails = item => {
   if (item.status !== "purchased" || !item.purchaseDate) return null;
@@ -225,6 +340,7 @@ const updateWishlist = (updatedArray) => {
   localStorage.setItem('myWishlist', JSON.stringify(wishlist));
   renderWishlist();
   renderSummaryCards();
+  renderPriorityChart();
 }
 
 const resetFormState = () => {
@@ -367,4 +483,5 @@ window.addEventListener('DOMContentLoaded', () => {
   renderSummaryCards();
 
   fetchExchangeRates();
+  renderPriorityChart();
 });
