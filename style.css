@@ -398,3 +398,14 @@ input[type="date"] {
 
 .priceDiff.positive {color: var(--success);}
 .priceDiff.negative {color: var(--danger);}
+
+.filter-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 1rem;
+}
+
+.filter-section #search-input {
+  grid-column: span 2;
+}

@@ -20,8 +20,12 @@ const VIEW = document.getElementById('wishlist-view');
 const UI_TOTAL_PRICE = document.getElementById('total-price');
 const UI_MONTHLY_INSTALLMENT = document.getElementById('monthly-installment');
 const UI_INSTALLMENT_COUNT = document.getElementById('installment-count');
+const UI_SEARCH_INPUT = document.getElementById('search-input');
+const UI_FILTER_STATUS = document.getElementById('filter-status');
+const UI_FILTER_PRIORITY = document.getElementById('filter-priority');
 
 let currentEditID = null;
+let filters = { search: '', status: 'all', priority: 'all' };
 /** @type {WishlistItem[]} */
 let wishlist = JSON.parse(localStorage.getItem('myWishlist')) || [];
 
@@ -38,7 +42,6 @@ const STATUS_MAP = {
   purchased: '✅ Purchased',
   canceled: '❌ Canceled'
 }
-
 
 const formatCurrency = (price) => Number(price || 0).toLocaleString("tr-TR", { minimumFractionDigits: 2,maximumFractionDigits: 2 });
 
@@ -126,7 +129,17 @@ const generateTableRow = element => {
 }
 
 const renderWishlist = () => {
-  const sortedList = [...wishlist].sort((a, b) => getPriorityInfo(a.importance, a.urgency).score - getPriorityInfo(b.importance, b.urgency).score);
+  const filteredList = wishlist.filter( item => {
+    const matchesSearch = item.name.toLowerCase().includes(filters.search) || (item.note || '').toLowerCase().includes(filters.search);
+
+    const matchesStatus = filters.status === 'all' || item.status === filters.status;
+
+    const itemPriority = getPriorityInfo(item.importance, item.urgency).class;
+    const matchesPriority = filters.priority === 'all' || itemPriority.includes(filters.priority);
+
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+  const sortedList = [...filteredList].sort((a, b) => getPriorityInfo(a.importance, a.urgency).score - getPriorityInfo(b.importance, b.urgency).score);
   VIEW.innerHTML = sortedList.map(generateTableRow).join('');
 }
 
@@ -189,6 +202,21 @@ FORM.elements.cancelBtn.addEventListener('click', () => { resetFormState(); VIEW
 VIEW.addEventListener('click', (event) => {
   if (event.target.classList.contains('btn-delete')) { updateWishlist(wishlist.filter(item => item.id !== event.target.dataset.id)) }
   if (event.target.classList.contains('btn-edit')) { updateItem(event.target.dataset.id); FORM.scrollIntoView({ block: "center" }) }
+});
+
+UI_SEARCH_INPUT.addEventListener('input', (event) => {
+  filters.search = event.target.value.toLowerCase();
+  renderWishlist();
+});
+
+UI_FILTER_STATUS.addEventListener('change', (event) => {
+  filters.status = event.target.value;
+  renderWishlist();
+});
+
+UI_FILTER_PRIORITY.addEventListener('change', (event) => {
+  filters.priority = event.target.value;
+  renderWishlist();
 });
 
 window.addEventListener('DOMContentLoaded', () => {

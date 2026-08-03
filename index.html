@@ -112,6 +112,23 @@
 
     <section class="table-section">
       <h2>My Wishlist</h2>
+      <aside class="filter-section">
+        <input type="text" name="filterSearch" id="search-input" placeholder="Wishlist name or note content">
+        <select name="filterStatus" id="filter-status">
+          <option value="all">🏡 All</option>
+          <option value="wishlist">💭 Wishlist</option>
+          <option value="researching">🔍 Researching</option>
+          <option value="purchased">✅ Purchased</option>
+          <option value="canceled">❌ Canceled</option>
+        </select>
+        <select name="filterPriority" id="filter-priority">
+          <option value="all">🎯 All Priorities</option>
+          <option value="p1">🔴 P1: Urgent & Important</option>
+          <option value="p2">🔵 P2: Important</option>
+          <option value="p3">🟡 P3: Urgent</option>
+          <option value="p4">⚪ P4: Someday</option>
+        </select>
+      </aside>
       <table>
         <thead>
           <tr>
