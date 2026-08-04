@@ -304,7 +304,8 @@ const generateTableRow = element => {
         ${element.note ? `<br><small class="has-tooltip" data-tooltip="${element.note}">📝</small>` : ""}
       </td>
       <td>
-        ${formatCurrency(element.price)} ${element.currency || "TL"} ${diffHtml}
+        <span class="price">${formatCurrency(element.price)} ${element.currency || "TL"} </span>
+        ${diffHtml}
       </td>
       <td>${paymentHtml}</td>
       <td><span class="badge ${priority.class}">${priority.label}</span></td>
