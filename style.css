@@ -95,7 +95,7 @@ a:hover {
 }
 
 main {
-  max-width: 800px;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
   padding: 2rem 1rem;
@@ -527,4 +527,9 @@ input[type="date"] {
 .actionButtons {
   display: flex;
   gap: .5rem;
+}
+
+.responsive-table {
+  width: 100%;
+  overflow: auto;
 }
