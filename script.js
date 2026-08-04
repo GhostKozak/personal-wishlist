@@ -110,12 +110,25 @@ const fetchExchangeRates = async () => {
 }
 
 const renderPriorityChart = () => {
+  const chartSection = document.querySelector('.chart-section');
   const ctx = document.getElementById('priority-chart');
-  if (!ctx) return;
+  if (!ctx || !chartSection) return;
 
   const dataValues = getPriorityBudgetDistribution();
 
-  // 1. Önceki grafik nesnesini temizle
+  const hasData = dataValues.some(value => value > 0);
+
+  if (!hasData) {
+    chartSection.style.display = 'none';
+    if (priorityChart) {
+      priorityChart.destroy();
+      priorityChart = null;
+    }
+    return;
+  }
+
+  chartSection.style.display = 'block';
+
   if (priorityChart) {
     priorityChart.destroy();
   }
