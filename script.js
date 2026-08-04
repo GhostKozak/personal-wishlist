@@ -311,8 +311,10 @@ const generateTableRow = element => {
       <td><span class="badge ${priority.class}">${priority.label}</span></td>
       <td><span class="status-label">${STATUS_MAP[element.status] || element.status}</span></td>
       <td>
-        <button class="btn-edit" data-id="${element.id}">Edit</button>
-        <button class="btn-delete" data-id="${element.id}">Delete</button>
+        <div class="actionButtons">
+          <button class="btn-edit" data-id="${element.id}">Edit</button>
+          <button class="btn-delete" data-id="${element.id}">Delete</button>
+        </div>
       </td>
     </tr>
   `;

@@ -167,9 +167,12 @@ select {
 }
 
 input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"] {
+input[type="number"]::-webkit-inner-spin-button {
   appearance: none;
+}
+
+input[type="number"] {
+  appearance: textfield;
 }
 
 input:focus, select:focus {
@@ -292,6 +295,7 @@ td {
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .badge-p1 { background-color: rgba(248, 81, 73, 0.2); color: var(--p1-red); border: 1px solid var(--p1-red); }
@@ -516,6 +520,11 @@ input[type="date"] {
   width: 100%;
 }
 
-.price {
+.price, .status-label {
   white-space: nowrap;
+}
+
+.actionButtons {
+  display: flex;
+  gap: .5rem;
 }
