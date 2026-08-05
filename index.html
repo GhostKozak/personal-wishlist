@@ -19,115 +19,127 @@
   </header>
 
   <main>
-    <section class="form-section">
-      <h2>Add New Item</h2>
-      <form id="wishlist-form">
-        <div class="form-group">
-          <label for="item-name">Name : </label>
-          <input type="text" id="item-name" name="name" required placeholder="Item name" autocomplete="off">
-        </div>
+    <section class="top-controls">
+      <button command="show-modal" commandfor="newItemModal">+ Add New Item</button>
+      <button id="btn-toggle-analytics">📊 Analytics</button>
+    </section>
 
-        <div class="form-group">
-          <label for="item-link">Links : </label>
-          <div class="input-row">
-            <input type="url" id="item-link" name="link" placeholder="Main Link (https://...)">
-            <input type="url" id="item-altLink" name="altLink" placeholder="Alt Link (https://...)">
+    <dialog id="newItemModal">
+      <section class="form-section modal">      
+        <h2>
+          <span id="modal-title-text">Add New Item</span>
+        </h2>
+        <button command="close" commandfor="newItemModal" class="modal-close">❌</button>
+        <form id="wishlist-form">
+          <div class="form-group">
+            <label for="item-name">Name : </label>
+            <input type="text" id="item-name" name="name" required placeholder="Item name" autocomplete="off">
           </div>
-        </div>
 
-        <div class="form-group">
-          <label for="item-price">Price : </label>
-          <div class="input-row">
-            <input type="number" id="item-price" name="price" step="0.01" min="0" placeholder="0.00" required>
-            <select name="currency" id="item-currency">
-              <option value="TRY">TRY</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
+          <div class="form-group">
+            <label for="item-link">Links : </label>
+            <div class="input-row">
+              <input type="url" id="item-link" name="link" placeholder="Main Link (https://...)">
+              <input type="url" id="item-altLink" name="altLink" placeholder="Alt Link (https://...)">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="item-price">Price : </label>
+            <div class="input-row">
+              <input type="number" id="item-price" name="price" step="0.01" min="0" placeholder="0.00" required>
+              <select name="currency" id="item-currency">
+                <option value="TRY">TRY</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="item-importance">Importance : </label>
+            <select name="importance" id="item-importance" required>
+              <option value="important">Important (Gerekli / Kritik)</option>
+              <option value="not-important">Not Important (Konfor / İstek)</option>
             </select>
           </div>
-        </div>
 
-        <div class="form-group">
-          <label for="item-importance">Importance : </label>
-          <select name="importance" id="item-importance" required>
-            <option value="important">Important (Gerekli / Kritik)</option>
-            <option value="not-important">Not Important (Konfor / İstek)</option>
-          </select>
-        </div>
+          <div class="form-group">
+            <label for="item-urgency">Urgency : </label>
+            <select name="urgency" id="item-urgency" required>
+              <option value="urgent">Urgent (Hemen Lazım)</option>
+              <option value="not-urgent">Not Urgent (Zamanı Var)</option>
+            </select>
+          </div>
 
-        <div class="form-group">
-          <label for="item-urgency">Urgency : </label>
-          <select name="urgency" id="item-urgency" required>
-            <option value="urgent">Urgent (Hemen Lazım)</option>
-            <option value="not-urgent">Not Urgent (Zamanı Var)</option>
-          </select>
-        </div>
+          <div class="form-group">
+            <label for="item-status">Status : </label>
+            <select name="status" id="item-status">
+              <option value="wishlist">💭 Wishlist</option>
+              <option value="researching">🔍 Researching</option>
+              <option value="purchased">✅ Purchased</option>
+              <option value="canceled">❌ Canceled</option>
+            </select>
+          </div>
 
-        <div class="form-group">
-          <label for="item-status">Status : </label>
-          <select name="status" id="item-status">
-            <option value="wishlist">💭 Wishlist</option>
-            <option value="researching">🔍 Researching</option>
-            <option value="purchased">✅ Purchased</option>
-            <option value="canceled">❌ Canceled</option>
-          </select>
-        </div>
+          <div class="form-group">
+            <label for="item-purchaseDate">Purchase Date</label>
+            <input type="date" name="purchaseDate" id="item-purchaseDate">
+          </div>
 
-        <div class="form-group">
-          <label for="item-purchaseDate">Purchase Date</label>
-          <input type="date" name="purchaseDate" id="item-purchaseDate">
-        </div>
+          <div class="form-group">
+            <label for="item-installmentCount">Installment Count :</label>
+            <select name="installmentCount" id="item-installmentCount">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+            </select>
+          </div>
 
-        <div class="form-group">
-          <label for="item-installmentCount">Installment Count :</label>
-          <select name="installmentCount" id="item-installmentCount">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-          </select>
-        </div>
+          <div class="form-group">
+            <label for="item-note">Note : </label>
+            <textarea name="note" id="item-note" rows="3"></textarea>
+          </div>
 
-        <div class="form-group">
-          <label for="item-note">Note : </label>
-          <textarea name="note" id="item-note" rows="3"></textarea>
-        </div>
+          <button type="submit" name="submitBtn">Save to Wishlist</button>
+          <button type="button" name="cancelBtn" disabled>Cancel</button>
+        </form>
+      </section>
+    </dialog>
 
-        <button type="submit" name="submitBtn">Save to Wishlist</button>
-        <button type="button" name="cancelBtn" disabled>Cancel</button>
-      </form>
-    </section>
+    <section class="analytics-container" hidden>
+      <section class="summary-section">
+        <h2>Budget AND Installment Summary</h2>
+        <div class="summary-cards">
+          <div class="card">
+            <span class="card-title">Total Wishlist Value</span>
+            <span class="card-value" id="total-price">0,00 TL</span>
+          </div>
+          <div class="card">
+            <span class="card-title">Montly Installment Total</span>
+            <span class="card-value" id="monthly-installment">0,00 TL / monthly</span>
+          </div>
+          <div class="card">
+            <span class="card-title">Installment Items</span>
+            <span class="card-value" id="installment-count">0 Item</span>
+          </div>
+        </div>
+      </section>
 
-    <section class="summary-section">
-      <h2>Budget AND Installment Summary</h2>
-      <div class="summary-cards">
-        <div class="card">
-          <span class="card-title">Total Wishlist Value</span>
-          <span class="card-value" id="total-price">0,00 TL</span>
+      <section class="chart-section">
+        <div class="chart-container">
+          <canvas id="priority-chart"></canvas>
         </div>
-        <div class="card">
-          <span class="card-title">Montly Installment Total</span>
-          <span class="card-value" id="monthly-installment">0,00 TL / monthly</span>
-        </div>
-        <div class="card">
-          <span class="card-title">Installment Items</span>
-          <span class="card-value" id="installment-count">0 Item</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="chart-section">
-      <div class="chart-container">
-        <canvas id="priority-chart"></canvas>
-      </div>
+      </section>
     </section>
 
     <section class="table-section">

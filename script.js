@@ -32,6 +32,9 @@ const UI_RATE_EUR = document.getElementById('rate-eur');
 const UI_RATE_STATUS = document.getElementById('rate-status-badge');
 const UI_RATE_LAST_UPDATED = document.getElementById('rate-last-updated');
 const UI_BTN_EDIT_RATES = document.getElementById('btn-edit-rates');
+const UI_ANALYTICS_CONTAINER = document.querySelector('.analytics-container');
+const UI_BTN_TOGGLE_ANALYTICS = document.getElementById('btn-toggle-analytics');
+const MODAL = document.getElementById('newItemModal');
 
 let EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
 let currentEditID = null;
@@ -365,6 +368,8 @@ const updateItem = (id) => {
   document.querySelector('section.form-section > h2').textContent = "Update Item";
   FORM.elements.submitBtn.textContent = 'Update Item';
   FORM.elements.cancelBtn.disabled = false;
+
+  MODAL.showModal();
 }
 
 const exportJSON = () => {
@@ -407,6 +412,33 @@ const importJSON = (event) => {
   event.target.value = '';
 }
 
+const toggleAnalytics = () => {
+  if (!UI_ANALYTICS_CONTAINER) return;
+
+  const isHidden = UI_ANALYTICS_CONTAINER.hidden;
+  UI_ANALYTICS_CONTAINER.hidden = !isHidden;
+
+  localStorage.setItem('wishlist_analytics_hidden', (!isHidden).toString());
+
+  if (isHidden && priorityChart) {
+    setTimeout(() => {
+      priorityChart.resize();
+    }, 50);
+  }
+}
+
+const initAnalyticsState = () => {
+  if (!UI_ANALYTICS_CONTAINER) return;
+
+  const savedState = localStorage.getItem('wishlist_analytics_hidden');
+
+  if (savedState === null) {
+    UI_ANALYTICS_CONTAINER.hidden = true;
+  } else {
+    UI_ANALYTICS_CONTAINER.hidden = savedState === 'true';
+  }
+};
+
 FORM.addEventListener('submit', (event) => {
   event.preventDefault();
   const formData = new FormData(event.target);
@@ -425,9 +457,11 @@ FORM.addEventListener('submit', (event) => {
   
   updateWishlist(wishlist);
   resetFormState();
+
+  MODAL.close();
 });
 
-FORM.elements.cancelBtn.addEventListener('click', () => { resetFormState(); VIEW.scrollIntoView({ block: "center" }) });
+FORM.elements.cancelBtn.addEventListener('click', () => { resetFormState(); VIEW.scrollIntoView({ block: "center" }); MODAL.close() });
 
 VIEW.addEventListener('click', (event) => {
   if (event.target.classList.contains('btn-delete')) { updateWishlist(wishlist.filter(item => item.id !== event.target.dataset.id)) }
@@ -478,7 +512,14 @@ UI_BTN_EDIT_RATES?.addEventListener('click', () => {
   }
 });
 
+MODAL.addEventListener('close', () => {
+  resetFormState();
+});
+
+UI_BTN_TOGGLE_ANALYTICS?.addEventListener('click', toggleAnalytics);
+
 window.addEventListener('DOMContentLoaded', () => {
+  initAnalyticsState();
   renderWishlist();
   renderSummaryCards();
 

@@ -118,6 +118,9 @@ section h2 {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 form {
@@ -220,6 +223,10 @@ input[type="checkbox"]:checked::before {
 input[type="checkbox"]:not(:checked):hover::before {
   opacity: 0.9;
   color: var(--danger);
+}
+
+button {
+  cursor: pointer;
 }
 
 button[type="submit"], button[name="cancelBtn"] {
@@ -532,4 +539,69 @@ input[type="date"] {
 .responsive-table {
   width: 100%;
   overflow: auto;
+}
+
+dialog {
+  width: calc(100% - 2rem);
+  max-width: 800px;
+  border-radius: var(--radius);
+  background-color: transparent;
+  border: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  padding: 0;
+  color: var(--text-main);
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.modal {
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  right: 1rem;
+  top: 0.95rem;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  float: right;
+  padding: 1rem;
+  opacity: 0.8;
+  transition: var(--transition);
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.top-controls {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: start;
+}
+
+.top-controls button {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  transition: var(--transition);
+  &:hover {
+    transform: translateY(4px);
+  }
+}
+
+.analytics-container[hidden] {
+  display: none !important;
 }
