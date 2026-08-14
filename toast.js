@@ -3,48 +3,82 @@ const UI_TOAST_TITLE = UI_TOAST.querySelector('.toast__title');
 const UI_TOAST_MESSAGE = UI_TOAST.querySelector('.toast__message');
 const UI_TOAST_TIMER_PROGRESS = UI_TOAST.querySelector('.toast__timer__progress');
 
-let toast = {
+const toastState = {
   timer: null,
   startTime: null,
-  remainingTime: null,
-  defaultTime: 3000
-}
+  remainingTime: 0,
+  defaultTime: 3000,
+  isPaused: false
+};
 
-const toastCloseTimer = (time = toast.defaultTime) => {
-  toast.remainingTime = time;
-  toast.startTime = Date.now();
+const showToastUI = () => UI_TOAST.classList.add('show');
 
-  toast.timer = setTimeout(() => toastClose(), toast.remainingTime);
+const hideToastUI = () => {
+  UI_TOAST.classList.remove('show');
+  clearTimeout(toastState.timer);
 
-  UI_TOAST_TIMER_PROGRESS.style.animation = 'none'; // Önce animasyonu sök
-  void UI_TOAST_TIMER_PROGRESS.offsetWidth;         // Reflow (Tarayıcıyı sıfırlamaya zorla)
-  UI_TOAST_TIMER_PROGRESS.style.animation = `progressBasicAnimation ${time}ms linear forwards`;
-}
+  toastState.timer = null;
+  toastState.startTime = null;
+  toastState.remainingTime = 0;
+  toastState.isPaused = false;
+};
 
-UI_TOAST.addEventListener('mouseenter', () => {
-  clearTimeout(toast.timer);
-  const elapsedTime = Date.now() - toast.startTime;
-  toast.remainingTime = toast.remainingTime - elapsedTime;
-})
+/**
+ * İlerleme çubuğunun animasyonunu sıfırlayıp belirtilen süreye göre başlatır.
+ * @param {number} durationMs - Animasyon süresi (milisaniye)
+ */
+const startProgressBar = (durationMs = toastState.remainingTime) => {
+  UI_TOAST_TIMER_PROGRESS.style.animation = 'none';
+  void UI_TOAST_TIMER_PROGRESS.offsetWidth; // Reflow tetikleyerek CSS animasyonunu sıfırla (Tarayıcıyı sıfırlamaya zorla)
+  UI_TOAST_TIMER_PROGRESS.style.animation = `progressBasicAnimation ${durationMs}ms linear forwards`;
+};
 
-UI_TOAST.addEventListener('mouseleave', () => {
-  toast.startTime = Date.now()
-  toast.timer = setTimeout(() => toastClose(), toast.remainingTime);
-})
+/**
+ * Otomatik kapanma sayacını ve animasyonu başlatır.
+ * @param {number} time - Kapanma süresi
+ */
+const startCloseTimer = (time = toastState.defaultTime) => {
+  toastState.remainingTime = time;
+  toastState.startTime = Date.now();
+  toastState.isPaused = false;
 
-const toastCreate = (title, message) => {
-  clearTimeout(toast.timer);
-  
+  clearTimeout(toastState.timer);
+  toastState.timer = setTimeout(hideToastUI, toastState.remainingTime);
+
+  startProgressBar(toastState.remainingTime);
+};
+
+const pauseTimer = () => {
+  if (!toastState.startTime) return;
+
+  clearTimeout(toastState.timer);
+  const elapsedTime = Date.now() - toastState.startTime;
+  toastState.remainingTime = Math.max(0, toastState.remainingTime - elapsedTime);
+  toastState.isPaused = true;
+};
+
+const resumeTimer = () => {
+  if (!toastState.isPaused) return;
+  if (toastState.remainingTime <= 0) return hideToastUI();
+
+  toastState.startTime = Date.now();
+  toastState.isPaused = false;
+  toastState.timer = setTimeout(hideToastUI, toastState.remainingTime);
+};
+
+/**
+ * Yeni bir toast bildirimi oluşturur ve ekranda başlatır.
+ * @param {string} title - Bildirim başlığı
+ * @param {string} message - Bildirim mesajı
+ * @param {number} [duration] - İsteğe bağlı özel süre
+ */
+const createToast = (title, message, duration = toastState.defaultTime) => {
   UI_TOAST_TITLE.innerText = title;
   UI_TOAST_MESSAGE.innerText = message;
-  toastShow();
-  toastCloseTimer();
-}
 
-const toastClose = () => {
-  UI_TOAST.classList.remove('show');
-}
+  showToastUI();
+  startCloseTimer(duration);
+};
 
-const toastShow = () => {
-  UI_TOAST.classList.add('show');
-}
+UI_TOAST.addEventListener('mouseenter', pauseTimer);
+UI_TOAST.addEventListener('mouseleave', resumeTimer);
