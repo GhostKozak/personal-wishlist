@@ -27,6 +27,12 @@
   /* Kenar Yuvarlama ve Geçiş Süreleri */
   --radius: 8px;
   --transition: all 0.2s ease-in-out;
+  
+  /* Shadow */
+  --shadow-color: 255, 255, 255;
+  --shadow-color-alpha: 0.35;
+  --shadow-elevation: 0 4px 12px;
+  --shadow: var(--shadow-elevation) rgba(var(--shadow-color), var(--shadow-color-alpha));
 }
 
 @media (prefers-color-scheme: light) {
@@ -42,6 +48,9 @@
     --accent: var(--purple);
     --success: #2da44e;        /* Açık temada daha net görünen bir yeşil */
     --danger: #cf222e;         /* Açık temada daha net kırmızı */
+
+    --shadow-color: 0, 0, 0;
+    --shadow-color-alpha: 0.15;
   }
 }
 
@@ -604,4 +613,57 @@ dialog::backdrop {
 
 .analytics-container[hidden] {
   display: none !important;
+}
+
+.toast {
+  position: fixed;
+  right: -99rem;
+  top: 1rem;
+  z-index: 10;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  max-width: 24rem;
+  width: 100%;
+  padding: 1rem;
+  overflow: hidden;
+  box-shadow: var(--shadow-elevation) rgba(45, 164, 78, var(--shadow-color-alpha));
+  transition: var(--transition);
+  &.show {
+    right: 1rem;
+  }
+}
+
+.toast__title {
+  font-size: 1.2rem;
+  margin-bottom: .3rem;
+  color: var(--text-main);
+}
+
+.toast__message {
+  font-size: .85rem;
+  color: var(--text-muted);
+}
+
+.toast__timer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+}
+
+.toast__timer__progress {
+  height: 2px;
+  width: 100%;
+  background-color: var(--success);
+}
+
+.toast:hover .toast__timer__progress {
+  animation-play-state: paused !important;
+}
+
+@keyframes progressBasicAnimation {
+  from { width: 100% }
+  to { width: 0 }
 }
