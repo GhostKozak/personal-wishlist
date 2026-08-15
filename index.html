@@ -203,8 +203,19 @@
     </div>
   </div>
 
+  <dialog id="confirm-modal">
+    <form method="dialog">
+      <p class="confirm-message">Emin misin?</p>
+      <menu>
+        <button value="false" class="cancelBtn">İptal</button>
+        <button value="true" class="confirmBtn">Onayla</button>
+      </menu>
+    </form>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="toast.js" defer></script>
+  <script src="confirmModal.js" defer></script>
   <script src="script.js" defer></script>
 </body>
 </html>
