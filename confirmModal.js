@@ -4,41 +4,39 @@ const UI_CONFIRM_MODAL_CONFIRMBTN = UI_CONFIRM_MODAL.querySelector('.confirmBtn'
 const UI_CONFIRM_MODAL_CANCELBTN = UI_CONFIRM_MODAL.querySelector('.cancelBtn');
 
 /**
- *
- *
- * @param {*} {message = "Emin misiniz?"}
- * @return {*} 
+ * @param {Object} options
+ * @param {string} [options.message="Emin misiniz?"]
+ * @param {HTMLElement} [options.targetElement] - Tıklanan buton
+ * @returns {Promise<boolean>}
  */
-const showConfirm = ({message = "Emin misiniz?"}) => {
-
+const showConfirm = ({message = "Emin misiniz?", targetElement = null}) => {
+  if (!UI_CONFIRM_MODAL) return Promise.resolve(false);
   if (UI_CONFIRM_MODAL_MESSAGE) UI_CONFIRM_MODAL_MESSAGE.textContent = message;
+
   UI_CONFIRM_MODAL.showModal();
 
+  if (targetElement) {
+    const rect = targetElement.getBoundingClientRect();
+    UI_CONFIRM_MODAL.style.position = 'fixed';
+    UI_CONFIRM_MODAL.style.margin = '0';
+    // Butonun 8px üstüne ve ortalayarak yerleştir:
+    UI_CONFIRM_MODAL.style.top = `${rect.top - 70}px`; 
+    UI_CONFIRM_MODAL.style.left = `${rect.left - 0}px`;
+  }
+
   return new Promise((resolve) => {
-    function returnValue (value) {
-      UI_CONFIRM_MODAL_CONFIRMBTN.removeEventListener('click', onConfirm);
-      UI_CONFIRM_MODAL_CANCELBTN.removeEventListener('click', onCancel);
-      window.removeEventListener('keydown', onKeyDown);
-      UI_CONFIRM_MODAL.removeEventListener('click', onBackdropClick);
+    const controller = new AbortController();
+    const { signal } = controller;
 
+    const finish = (value) => {
+      controller.abort();
       UI_CONFIRM_MODAL.close();
-
-      console.log(value);
       resolve(value);
-    }
+    };
 
-    UI_CONFIRM_MODAL.addEventListener('close', () => {
-      resolve(UI_CONFIRM_MODAL.returnValue === 'true');
-    }, { once: true });
-
-    const onConfirm = () => returnValue(true);
-    const onCancel = () => returnValue(false);
-    const onKeyDown = (e) => { if (e.key === 'Escape') returnValue(false) }
-    const onBackdropClick = (e) => { if (e.target === UI_CONFIRM_MODAL) returnValue(false) }
-
-    UI_CONFIRM_MODAL_CONFIRMBTN.addEventListener('click', onConfirm, { once : true });
-    UI_CONFIRM_MODAL_CANCELBTN.addEventListener('click', onCancel, { once : true });
-    window.addEventListener('keydown', onKeyDown, { once : true });
-    UI_CONFIRM_MODAL.addEventListener('click', onBackdropClick, { once : true });
+    UI_CONFIRM_MODAL_CONFIRMBTN?.addEventListener('click', () => finish(true), { signal });
+    UI_CONFIRM_MODAL_CANCELBTN?.addEventListener('click', () => finish(false), { signal });
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') finish(false); }, { signal });
+    UI_CONFIRM_MODAL.addEventListener('click', (e) => { if (e.target === UI_CONFIRM_MODAL) finish(false); }, { signal });
   });
 }

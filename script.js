@@ -463,9 +463,19 @@ FORM.addEventListener('submit', (event) => {
 
 FORM.elements.cancelBtn.addEventListener('click', () => { resetFormState(); VIEW.scrollIntoView({ block: "center" }); MODAL.close() });
 
-VIEW.addEventListener('click', (event) => {
-  if (event.target.classList.contains('btn-delete')) { updateWishlist(wishlist.filter(item => item.id !== event.target.dataset.id)) }
-  if (event.target.classList.contains('btn-edit')) { updateItem(event.target.dataset.id); FORM.scrollIntoView({ block: "center" }) }
+VIEW.addEventListener('click', async (event) => {
+  const deleteBtn = event.target.closest('.btn-delete');
+  const editBtn = event.target.closest('.btn-edit');
+
+  if (deleteBtn) { 
+    const isConfirmed = await showConfirm({
+      message: 'Bu ürünü silmek istediğinize emin misiniz?', 
+      targetElement: deleteBtn
+    });
+
+    if (isConfirmed) { updateWishlist(wishlist.filter(item => item.id !== event.target.dataset.id)) }
+  }
+  if (editBtn) { updateItem(event.target.dataset.id); FORM.scrollIntoView({ block: "center" }) }
 });
 
 UI_SEARCH_INPUT.addEventListener('input', (event) => {

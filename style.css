@@ -670,6 +670,7 @@ dialog::backdrop {
 
 /* Dialog ana kutusu ve animasyon ayarları */
 #confirm-modal {
+  position: fixed;
   border: none;
   border-radius: 12px;
   padding: 1rem;
@@ -678,6 +679,11 @@ dialog::backdrop {
   max-width: 400px;
   width: 100%;
   border: 1px solid var(--border-color);
+}
+
+#confirm-modal::backdrop {
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(1px);
 }
 
 .confirm-message {
