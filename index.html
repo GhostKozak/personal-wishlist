@@ -213,6 +213,23 @@
     </form>
   </dialog>
 
+  <dialog id="ratesModal">
+    <form method="dialog">
+      <div class="form-group">
+        <label for="usd-input">USD</label>
+        <input type="number" name="USD" id="usd-input" min="0.01" step="any">
+      </div>
+      <div class="form-group">
+        <label for="eur-input">EUR</label>
+        <input type="number" name="EUR" id="eur-input" min="0.01" step="any">
+      </div>
+      <menu>
+        <button type="button" class="cancelBtn" name="cancelBtn" onclick="ratesModal.close()">Cancel</button>
+        <button type="submit" class="confirmBtn">Save</button>
+      </menu>
+    </form>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="toast.js" defer></script>
   <script src="confirmModal.js" defer></script>

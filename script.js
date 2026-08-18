@@ -32,6 +32,8 @@ const UI_RATE_EUR = document.getElementById('rate-eur');
 const UI_RATE_STATUS = document.getElementById('rate-status-badge');
 const UI_RATE_LAST_UPDATED = document.getElementById('rate-last-updated');
 const UI_BTN_EDIT_RATES = document.getElementById('btn-edit-rates');
+const UI_RATES_DIALOG = document.getElementById('ratesModal');
+const UI_RATES_FORM = UI_RATES_DIALOG.querySelector('form');
 const UI_ANALYTICS_CONTAINER = document.querySelector('.analytics-container');
 const UI_BTN_TOGGLE_ANALYTICS = document.getElementById('btn-toggle-analytics');
 const MODAL = document.getElementById('newItemModal');
@@ -500,27 +502,37 @@ UI_IMPORT_BUTTON.addEventListener('click', (event) => UI_FILE_IMPORT.click());
 UI_FILE_IMPORT.addEventListener('change', (event) => importJSON(event));
 
 UI_BTN_EDIT_RATES?.addEventListener('click', () => {
-  const newUsd = prompt('Güncel USD Kuru (TL):', EXCHANGE_RATES.USD);
-  const newEur = prompt('Güncel EUR Kuru (TL):', EXCHANGE_RATES.EUR);
+  UI_RATES_DIALOG.showModal();
 
-  if (newUsd && newEur && !isNaN(newUsd) && !isNaN(newEur)) {
+  Object.entries(EXCHANGE_RATES).forEach( ([key, value]) => {
+    if (UI_RATES_FORM.elements[key]) {
+      UI_RATES_FORM.elements[key].value = value || "";
+    }
+  });
+});
+
+UI_RATES_FORM.addEventListener('submit', (event) => {
+    const formData = new FormData(event.target);
+    const rawEntries = Object.fromEntries(formData);
+    const formEntries = Object.fromEntries(
+      Object.entries(rawEntries).map(([key, value]) => [key, Number(value) || 0])
+    );
+    console.log(formEntries);
+
     EXCHANGE_RATES = {
-      TRY: 1,
-      USD: Number(newUsd),
-      EUR: Number(newEur)
+      ...EXCHANGE_RATES,
+      ...formEntries
     };
 
     localStorage.setItem('wishlist_exchange_rates', JSON.stringify({
       rates: EXCHANGE_RATES,
       timestamp: Date.now(),
-      isManual: true // Manuel girildiğini işaretle
+      isManual: true
     }));
 
     updateRateUI(false, 'Manuel Ayarlandı');
     updateWishlist(wishlist);
-    alert('Kurlar manuel olarak güncellendi! 🎉');
-  }
-});
+  });
 
 MODAL.addEventListener('close', () => {
   resetFormState();
