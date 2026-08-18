@@ -375,7 +375,7 @@ const updateItem = (id) => {
 }
 
 const exportJSON = () => {
-  if (wishlist.length === 0) return alert('İndirilecek veri yok!');
+  if (wishlist.length === 0) return createToast({type: 'info', message: 'İndirilecek veri yok!' });
   
   const jsonString = JSON.stringify(wishlist, null, 2);
   const blob = new Blob([jsonString], { type: "application/json" });
@@ -401,12 +401,22 @@ const importJSON = (event) => {
 
       if (Array.isArray(importedData)) {
         updateWishlist(importedData);
-        alert('Veriler başarıyla yüklendi! 🎉');
+        createToast({
+          type: 'success',
+          message: 'Veriler başarıyla yüklendi! 🎉'
+        });
+
       } else {
-        alert('Geçersiz dosya biçimi!');
+        createToast({
+          type: 'error',
+          message: 'Geçersiz dosya biçimi!'
+        });
       }
     } catch (err) {
-      alert('JSON dosyası okunamadı!');
+      createToast({
+          type: 'error',
+          message: 'JSON dosyası okunamadı!'
+        });
     }
   }
 

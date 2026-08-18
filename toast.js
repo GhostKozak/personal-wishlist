@@ -12,10 +12,10 @@ const TOAST_STATE = {
 };
 
 const TOAST_TYPES = {
-  success: { icon: '✔️', className: 'toast-success' },
-  error:   { icon: '❌', className: 'toast-error' },
-  warning: { icon: '⚠️', className: 'toast-warning' },
-  info:    { icon: '❕', className: 'toast-info' }
+  success: { icon: '✔️', className: 'toast-success', defaultTitle: 'SUCCESS' },
+  error:   { icon: '❌', className: 'toast-error', defaultTitle: 'ERROR' },
+  warning: { icon: '⚠️', className: 'toast-warning', defaultTitle: 'WARNING' },
+  info:    { icon: '❕', className: 'toast-info', defaultTitle: 'INFO' }
 };
 
 const ALL_TOAST_CLASSES = Object.values(TOAST_TYPES).map(t => t.className);
