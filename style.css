@@ -740,3 +740,43 @@ dialog::backdrop {
   padding: 0;
   margin: 0;
 }
+
+
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--transition);
+  position: relative;
+}
+
+th.sortable:hover {
+  background-color: var(--card-bg);
+}
+
+.sort-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  margin-left: 0.35rem;
+  opacity: 0.4;
+  margin-left: auto;
+  display: inline-block;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+th.sort-asc .sort-icon,
+th.sort-desc .sort-icon {
+  color: var(--green);
+}
+
+th.sort-asc .sort-icon {
+  opacity: 1;
+  content: '▲';
+}
+
+th.sort-desc .sort-icon {
+  opacity: 1;
+  content: '▼';
+}

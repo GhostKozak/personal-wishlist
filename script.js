@@ -36,6 +36,7 @@ const UI_RATES_DIALOG = document.getElementById('ratesModal');
 const UI_RATES_FORM = UI_RATES_DIALOG.querySelector('form');
 const UI_ANALYTICS_CONTAINER = document.querySelector('.analytics-container');
 const UI_BTN_TOGGLE_ANALYTICS = document.getElementById('btn-toggle-analytics');
+const UI_TABLE_HEADER = document.querySelector('.table-section table thead');
 const MODAL = document.getElementById('newItemModal');
 
 let EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
@@ -44,6 +45,7 @@ let filters = { search: '', status: 'all', priority: 'all' };
 /** @type {WishlistItem[]} */
 let wishlist = JSON.parse(localStorage.getItem('myWishlist')) || [];
 let priorityChart = null;
+let currentSort = { key: null, order: 'asc' }
 
 const PRIORITY_MAP = {
   'important-urgent': { score: 1, label: 'P1: Urgent & Important', class: 'badge-p1' },
@@ -64,6 +66,34 @@ const formatCurrency = (price) => Number(price || 0).toLocaleString("tr-TR", { m
 const getPriorityInfo = (importance, urgency) => PRIORITY_MAP[`${importance}-${urgency}`] || PRIORITY_MAP['not-important-not-urgent'];
 
 const currencyToTRY = (price, currency) => Number(price || 0) * (EXCHANGE_RATES[currency] || 1);
+
+const getMonthlyPayment = (item) => {
+  if (item.status !== "purchased") return 0;
+  
+  const count = Number(item.installmentCount || 0);
+  if (count <= 1) return 0;
+
+  return currencyToTRY(item.price, item.currency) / count;
+};
+
+const updateSortIcons = () => {
+  document.querySelectorAll('.table-section table thead th.sortable').forEach(th => {
+    const key = th.dataset.sort;
+    const icon = th.querySelector('.sort-icon');
+    
+    // Önceki sınıfları temizle
+    th.classList.remove('sort-asc', 'sort-desc');
+
+    if (key === currentSort.key) {
+      // Aktif sıralanan sütuna uygun class'ı ve oku ver
+      th.classList.add(currentSort.order === 'asc' ? 'sort-asc' : 'sort-desc');
+      if (icon) icon.textContent = currentSort.order === 'asc' ? '▲' : '▼';
+    } else {
+      // Aktif olmayan sütunların okunu nötr tut
+      if (icon) icon.textContent = '↕';
+    }
+  });
+};
 
 const fetchExchangeRates = async () => {
   const ONE_HOUR = 60 * 60 * 1000;
@@ -336,8 +366,52 @@ const renderWishlist = () => {
 
     return matchesSearch && matchesStatus && matchesPriority;
   });
-  const sortedList = [...filteredList].sort((a, b) => getPriorityInfo(a.importance, a.urgency).score - getPriorityInfo(b.importance, b.urgency).score);
+
+  const modifier = currentSort.order === 'asc' ? 1 : -1;
+
+  const sortedList = [...filteredList].sort((a, b) => {
+    let diff = 0;
+
+    switch (currentSort.key) {
+      case 'name':
+        diff = a.name.localeCompare(b.name, 'tr');
+        break;
+      case 'price':
+        diff = currencyToTRY(a.price, a.currency) - currencyToTRY(b.price, b.currency);
+        break;
+      case 'priority':
+        diff = getPriorityInfo(a.importance, a.urgency).score - getPriorityInfo(b.importance, b.urgency).score;
+        break;
+      case 'createdAt':
+        diff = new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+        break;
+      case 'status':
+        const STATUS_WEIGHT = { wishlist: 1, researching: 2, purchased: 3, canceled: 4 };
+        diff = (STATUS_WEIGHT[a.status] || 99) - (STATUS_WEIGHT[b.status] || 99);
+        break;
+      case 'payment': {
+        const payA = getMonthlyPayment(a);
+        const payB = getMonthlyPayment(b);
+
+        const hasA = payA > 0;
+        const hasB = payB > 0;
+
+        if (hasA && !hasB) return -1;
+        if (!hasA && hasB) return 1;
+        if (!hasA && !hasB) return 0;
+
+        return (payA - payB) * modifier;
+        }
+      default:
+        diff = 0;
+        break;
+    }
+
+    return diff * modifier;
+  });
+
   VIEW.innerHTML = sortedList.map(generateTableRow).join('');
+  updateSortIcons();
 }
 
 const updateWishlist = (updatedArray) => {
@@ -549,6 +623,22 @@ MODAL.addEventListener('close', () => {
 });
 
 UI_BTN_TOGGLE_ANALYTICS?.addEventListener('click', toggleAnalytics);
+
+UI_TABLE_HEADER.addEventListener('click', (event) => {
+  const th = event.target.closest('th');
+  if (!th || !th.dataset.sort) return; // Geçersiz veya data-sort olmayan başlıkları engelle
+
+  if (currentSort.key === th.dataset.sort) {
+    currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+    th.classList.add('sort-asc')
+    th.classList.add('sort-desc')
+  } else {
+    currentSort.key = th.dataset.sort;
+    currentSort.order = 'asc';
+  }
+
+  renderWishlist();
+});
 
 window.addEventListener('DOMContentLoaded', () => {
   initAnalyticsState();
