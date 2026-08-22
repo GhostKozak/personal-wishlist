@@ -42,6 +42,7 @@ const UI_BUDGET_STATUS_TEXT = document.getElementById('budget-status-text');
 const UI_BUDGET_PROGRESS_BAR = document.getElementById('budget-progress-bar');
 const UI_BUDGET_EDIT_BUTTON = document.querySelector('.budget-card .btn-edit-budget');
 const UI_BUDGET_MODAL = document.getElementById('budgetModal');
+const UI_BUDGET_MODAL_FORM = UI_BUDGET_MODAL.querySelector("form");
 const MODAL = document.getElementById('newItemModal');
 
 let EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
@@ -341,12 +342,6 @@ const setBudget = (event) => {
   localStorage.setItem('budgetLimit', Number(formEntries.budget));
   renderSummaryCards();
 }
-
-UI_BUDGET_MODAL.querySelector('form').addEventListener('submit', (event) => {
-  event.preventDefault();
-  setBudget(event);
-  UI_BUDGET_MODAL.close();
-});
 
 const generateTableRow = element => {
   const priority = getPriorityInfo(element.importance, element.urgency);
@@ -660,6 +655,12 @@ UI_RATES_FORM.addEventListener('submit', (event) => {
 
 MODAL.addEventListener('close', () => {
   resetFormState();
+});
+
+UI_BUDGET_MODAL_FORM.addEventListener('submit', (event) => {
+  event.preventDefault();
+  setBudget(event);
+  UI_BUDGET_MODAL.close();
 });
 
 UI_BTN_TOGGLE_ANALYTICS?.addEventListener('click', toggleAnalytics);
