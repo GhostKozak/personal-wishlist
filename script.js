@@ -43,6 +43,7 @@ const UI_BUDGET_PROGRESS_BAR = document.getElementById('budget-progress-bar');
 const UI_BUDGET_EDIT_BUTTON = document.querySelector('.budget-card .btn-edit-budget');
 const UI_BUDGET_MODAL = document.getElementById('budgetModal');
 const UI_BUDGET_MODAL_FORM = UI_BUDGET_MODAL.querySelector("form");
+const UI_THEME_TOGGLE_BUTTON = document.getElementById('btn-theme-toggle');
 const MODAL = document.getElementById('newItemModal');
 
 let EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
@@ -560,6 +561,30 @@ const initAnalyticsState = () => {
   }
 };
 
+const updateThemeUI = (theme) => {
+  if (theme === 'dark') {
+    UI_THEME_TOGGLE_BUTTON.textContent = '☀️ Toggle Light Mode'
+  } else {
+    UI_THEME_TOGGLE_BUTTON.textContent = '🌙 Toggle Dark Mode'
+  }
+}
+
+const initTheme = () => {
+  const systemTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  const currentTheme = localStorage.getItem('wishlist_theme') || systemTheme;
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  updateThemeUI(currentTheme);
+}
+
+const toggleTheme = () => {
+  let currentTheme = document.documentElement.getAttribute('data-theme');
+  if (!currentTheme) return;
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('wishlist_theme', currentTheme);
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  updateThemeUI(currentTheme);
+}
+
 FORM.addEventListener('submit', (event) => {
   event.preventDefault();
   const formData = new FormData(event.target);
@@ -679,7 +704,10 @@ UI_TABLE_HEADER.addEventListener('click', (event) => {
   renderWishlist();
 });
 
+UI_THEME_TOGGLE_BUTTON.addEventListener('click', toggleTheme);
+
 window.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   initAnalyticsState();
   renderWishlist();
   renderSummaryCards();

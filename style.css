@@ -1,4 +1,4 @@
-:root {
+:root, html[data-theme="dark"] {
   --green: #90bb01;
   --purple: #642f99;
   --purple-dark: #411d61;
@@ -36,23 +36,21 @@
   --shadow: var(--shadow-elevation) rgba(var(--shadow-color), var(--shadow-color-alpha));
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg-color: #f6f8fa;       /* Açık gri / Beyaza yakın arka plan */
-    --card-bg: #ffffff;        /* Kartlar ve formlar için saf beyaz */
-    --text-main: #24292f;      /* Koyu gri / Siyaha yakın ana metin */
-    --text-muted: #57606a;     /* Yardımcı gri metin */
-    --border-color: #d0d7de;   /* Açık tema sınır çizgileri */
-    
-    --primary: var(--purple);
-    --primary-hover: var(--purple-dark);
-    --accent: var(--purple);
-    --success: #2da44e;        /* Açık temada daha net görünen bir yeşil */
-    --danger: #cf222e;         /* Açık temada daha net kırmızı */
+html[data-theme="light"] {
+  --bg-color: #f6f8fa;       /* Açık gri / Beyaza yakın arka plan */
+  --card-bg: #ffffff;        /* Kartlar ve formlar için saf beyaz */
+  --text-main: #24292f;      /* Koyu gri / Siyaha yakın ana metin */
+  --text-muted: #57606a;     /* Yardımcı gri metin */
+  --border-color: #d0d7de;   /* Açık tema sınır çizgileri */
+  
+  --primary: var(--purple);
+  --primary-hover: var(--purple-dark);
+  --accent: var(--purple);
+  --success: #2da44e;        /* Açık temada daha net görünen bir yeşil */
+  --danger: #cf222e;         /* Açık temada daha net kırmızı */
 
-    --shadow-color: 0, 0, 0;
-    --shadow-color-alpha: 0.15;
-  }
+  --shadow-color: 0, 0, 0;
+  --shadow-color-alpha: 0.15;
 }
 
 * {
