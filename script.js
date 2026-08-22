@@ -37,6 +37,11 @@ const UI_RATES_FORM = UI_RATES_DIALOG.querySelector('form');
 const UI_ANALYTICS_CONTAINER = document.querySelector('.analytics-container');
 const UI_BTN_TOGGLE_ANALYTICS = document.getElementById('btn-toggle-analytics');
 const UI_TABLE_HEADER = document.querySelector('.table-section table thead');
+const UI_BUDGET_LIMIT_TEXT = document.getElementById('budget-limit-text');
+const UI_BUDGET_STATUS_TEXT = document.getElementById('budget-status-text');
+const UI_BUDGET_PROGRESS_BAR = document.getElementById('budget-progress-bar');
+const UI_BUDGET_EDIT_BUTTON = document.querySelector('.budget-card .btn-edit-budget');
+const UI_BUDGET_MODAL = document.getElementById('budgetModal');
 const MODAL = document.getElementById('newItemModal');
 
 let EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
@@ -44,6 +49,7 @@ let currentEditID = null;
 let filters = { search: '', status: 'all', priority: 'all' };
 /** @type {WishlistItem[]} */
 let wishlist = JSON.parse(localStorage.getItem('myWishlist')) || [];
+let budget = JSON.parse(localStorage.getItem('budgetLimit')) || 0;
 let priorityChart = null;
 let currentSort = { key: null, order: 'asc' }
 
@@ -302,11 +308,45 @@ const calculateBudget = () => {
 const renderSummaryCards = () => {
   const { wishlistTotal, installmentTotal } = calculateBudget();
   const activeInstallmentItems = wishlist.filter(item => (Number(item.installmentCount) > 1 && item.status === "purchased")).length;
-  
+  const remainingBudget = budget - installmentTotal;
+  const percentageBudget = budget > 0 ? (installmentTotal / budget) * 100 : 0;
+
   UI_TOTAL_PRICE.innerHTML = `${formatCurrency(wishlistTotal)} TL`;
   UI_MONTHLY_INSTALLMENT.innerHTML = `${formatCurrency(installmentTotal)} TL / monthly`;
   UI_INSTALLMENT_COUNT.innerHTML = `${activeInstallmentItems} Item`;
+  
+  if (budget !== 0) {
+    UI_BUDGET_LIMIT_TEXT.innerText = `${formatCurrency(budget)} TRY`;
+    UI_BUDGET_STATUS_TEXT.innerText = `%${Math.round(percentageBudget)} used (Remaining: ${formatCurrency(remainingBudget)} TL)`;
+    UI_BUDGET_PROGRESS_BAR.style.width = `${Math.min(percentageBudget, 100)}%`
+    UI_BUDGET_PROGRESS_BAR.classList.remove('safe', 'warning', 'danger');
+    if (percentageBudget >= 90) {
+      UI_BUDGET_PROGRESS_BAR.classList.add('danger');
+    } else if (percentageBudget >= 70) {
+      UI_BUDGET_PROGRESS_BAR.classList.add('warning');
+    } else {
+      UI_BUDGET_PROGRESS_BAR.classList.add('safe');
+    }
+  } else {
+    UI_BUDGET_STATUS_TEXT.innerText = 'Bütçe belirlenmedi';
+    UI_BUDGET_PROGRESS_BAR.classList.remove('safe', 'warning', 'danger');
+    UI_BUDGET_PROGRESS_BAR.style.width = '0%';
+  }
 }
+
+const setBudget = (event) => {
+  const formData = new FormData(event.target);
+  const formEntries = Object.fromEntries(formData);
+  budget = Number(formEntries.budget);
+  localStorage.setItem('budgetLimit', Number(formEntries.budget));
+  renderSummaryCards();
+}
+
+UI_BUDGET_MODAL.querySelector('form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  setBudget(event);
+  UI_BUDGET_MODAL.close();
+});
 
 const generateTableRow = element => {
   const priority = getPriorityInfo(element.importance, element.urgency);
@@ -630,8 +670,6 @@ UI_TABLE_HEADER.addEventListener('click', (event) => {
 
   if (currentSort.key === th.dataset.sort) {
     currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
-    th.classList.add('sort-asc')
-    th.classList.add('sort-desc')
   } else {
     currentSort.key = th.dataset.sort;
     currentSort.order = 'asc';

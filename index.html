@@ -132,6 +132,18 @@
             <span class="card-title">Installment Items</span>
             <span class="card-value" id="installment-count">0 Item</span>
           </div>
+          <div class="card budget-card">
+            <div class="budget-card-header">
+              <span class="card-title">Budget Limit</span>
+              <button id="btn-edit-budget" class="btn-icon" title="Set Budget" onclick="budgetModal.showModal()">⚙️</button>
+            </div>
+            <span class="card-value" id="budget-limit-text">0,00 TL</span>
+
+            <div class="budget-progress-container">
+              <div class="budget-progress-bar" id="budget-progress-bar" style="width: 0%;"></div>
+            </div>
+            <small id="budget-status-text">%0 used (Remaining: 0,00 TL)</small>
+          </div>
         </div>
       </section>
 
@@ -226,6 +238,20 @@
       <menu>
         <button type="button" class="cancelBtn" name="cancelBtn" onclick="ratesModal.close()">Cancel</button>
         <button type="submit" class="confirmBtn">Save</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="budgetModal">
+    <form method="dialog" id="budget-form">
+      <h3>Set Monthly / Total Budget</h3>
+      <div class="form-group">
+        <label for="budget-input">Target Budget (TL):</label>
+        <input type="number" name="budget" id="budget-input" min="0" step="50" placeholder="e.g. 15000" required>
+      </div>
+      <menu>
+        <button type="button" class="cancelBtn" name="cancelBtn" onclick="budgetModal.close()">Cancel</button>
+        <button type="submit" class="confirmBtn">Save Budget</button>
       </menu>
     </form>
   </dialog>

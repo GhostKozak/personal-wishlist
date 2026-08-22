@@ -23,6 +23,7 @@
   --accent: var(--purple-light);
   --success: var(--green);   /* Yeşil rengi kaydetme butonlarında veya onaylarda kullanabiliriz */
   --danger: #f85149;         /* Silme butonu için standart tatlı bir kırmızı */
+  --warning: #eab308;
   
   /* Kenar Yuvarlama ve Geçiş Süreleri */
   --radius: 8px;
@@ -335,7 +336,7 @@ input[type="date"] {
 
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
 }
 
@@ -779,4 +780,45 @@ th.sort-asc .sort-icon {
 th.sort-desc .sort-icon {
   opacity: 1;
   content: '▼';
+}
+
+.budget-card-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.budget-card-header .btn-icon {
+  background: none;
+  border: none;
+  font-size: 1rem;
+}
+
+.budget-progress-container {
+  width: 100%;
+  height: 8px;
+  background-color: var(--border-color, #334155);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.budget-progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* Duruma göre dinamik renk sınıfları */
+.budget-progress-bar.safe {
+  background-color: var(--success);
+}
+
+.budget-progress-bar.warning {
+  background-color: var(--warning);
+}
+
+.budget-progress-bar.danger {
+  background-color: var(--danger);
 }
