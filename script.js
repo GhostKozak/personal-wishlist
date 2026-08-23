@@ -380,7 +380,7 @@ const generateTableRow = element => {
       </td>
       <td>${paymentHtml}</td>
       <td><span class="badge ${priority.class}">${priority.label}</span></td>
-      <td><span class="status-label">${STATUS_MAP[element.status] || element.status}</span></td>
+      <td class="status-cell" data-id="${element.id}" data-selected="${element.status}"><span class="status-label">${STATUS_MAP[element.status] || element.status}</span></td>
       <td>
         <div class="actionButtons">
           <button class="btn-edit" data-id="${element.id}">Edit</button>
@@ -705,6 +705,43 @@ UI_TABLE_HEADER.addEventListener('click', (event) => {
 });
 
 UI_THEME_TOGGLE_BUTTON.addEventListener('click', toggleTheme);
+
+VIEW.addEventListener("dblclick", (event) => {
+  const statusTrigger = event.target.closest('.status-cell');
+  if (!statusTrigger) return;
+
+  const wishlistID = statusTrigger.dataset.id;
+  const oldHTML = statusTrigger.innerHTML;
+  const selected = statusTrigger.dataset.selected;
+
+  // STATUS HTML
+  const statusElement = document.createElement('select');
+  statusElement.innerHTML = Object.keys(STATUS_MAP).map((key) => {
+    return key === selected ? (`<option value="${key}" selected>${STATUS_MAP[key]}</option>`) : (`<option value="${key}">${STATUS_MAP[key]}</option>`)
+  }).join('');
+
+  statusElement.addEventListener('change', (event) => {
+    const targetWishlistItem = wishlist.find(item => item.id === wishlistID);
+    if (!targetWishlistItem) return;
+
+    targetWishlistItem.status = event.target.value;
+    if (targetWishlistItem.status === 'purchased' && !targetWishlistItem.purchaseDate) {
+      targetWishlistItem.purchaseDate = new Date().toISOString().slice(0, 10);
+    }
+    
+
+    updateWishlist(wishlist);
+  });
+
+  statusElement.addEventListener('blur', () => {
+    renderWishlist();
+  });
+
+  statusTrigger.innerHTML = "";
+  statusTrigger.appendChild(statusElement);
+  statusElement.focus();
+  statusElement.showPicker();
+});
 
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
