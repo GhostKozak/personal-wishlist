@@ -112,7 +112,7 @@ const fetchExchangeRates = async () => {
     if (cachedData.isManual || (now - cachedData.timestamp < ONE_HOUR)) {
       EXCHANGE_RATES = cachedData.rates;
       const dateStr = new Date(cachedData.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-      updateRateUI(!cachedData.isManual, `${cachedData.isManual ? 'Manuel' : 'Cache'}: ${dateStr}`);
+      updateRateUI(!cachedData.isManual, `${cachedData.isManual ? 'Manual' : 'Cache'}: ${dateStr}`);
       renderWishlist();
       renderSummaryCards();
       return;
@@ -141,14 +141,13 @@ const fetchExchangeRates = async () => {
       }));
 
       const dateStr = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-      updateRateUI(true, `Canlı: ${dateStr}`);
+      updateRateUI(true, `Live: ${dateStr}`);
 
       renderWishlist();
       renderSummaryCards();
     }
   } catch (error) {
-    console.warn('Canlı kur alınamadı:', error);
-    updateRateUI(false, '⚠️ Canlı Kur Alınamadı!');
+    updateRateUI(false, '⚠️ Failed to fetch live rates!');
   }
 }
 
@@ -260,10 +259,10 @@ const updateRateUI = (isLive, lastUpdatedText) => {
   if (UI_RATE_STATUS) {
     if (isLive) {
       UI_RATE_STATUS.className = 'badge-status online';
-      UI_RATE_STATUS.title = 'Kurlar canlı API üzerinden güncel tutuluyor.';
+      UI_RATE_STATUS.title = 'Rates are kept up to date via live API.';
     } else {
       UI_RATE_STATUS.className = 'badge-status warning';
-      UI_RATE_STATUS.title = 'Canlı kur bağlantısı kurulamadı! Sabit/Manuel kurlar kullanılıyor.';
+      UI_RATE_STATUS.title = 'Live rate connection failed! Using fixed/manual rates.';
     }
   }
 };
@@ -330,7 +329,7 @@ const renderSummaryCards = () => {
       UI_BUDGET_PROGRESS_BAR.classList.add('safe');
     }
   } else {
-    UI_BUDGET_STATUS_TEXT.innerText = 'Bütçe belirlenmedi';
+    UI_BUDGET_STATUS_TEXT.innerText = 'No budget set';
     UI_BUDGET_PROGRESS_BAR.classList.remove('safe', 'warning', 'danger');
     UI_BUDGET_PROGRESS_BAR.style.width = '0%';
   }
@@ -353,13 +352,13 @@ const generateTableRow = element => {
   if (priceDiff > 0) diffHtml = `<br><small class="priceDiff negative">▲ +${formatCurrency(priceDiff)} TL</small>`;
   else if (priceDiff < 0) diffHtml = `<br><small class="priceDiff positive">▼ -${formatCurrency(Math.abs(priceDiff))} TL</small>`;
 
-  let paymentHtml = "Peşin";
+  let paymentHtml = "Cash";
   if (element.status === "purchased") {
     if (installmentDetails) {
-      paymentHtml = `Taksit <br><small>${formatCurrency(currencyToTRY(element.price, element.currency) / installmentDetails.total)} TL/ay</small>`;
+      paymentHtml = `Installment <br><small>${formatCurrency(currencyToTRY(element.price, element.currency) / installmentDetails.total)} TL/mo</small>`;
       paymentHtml += installmentDetails.remaining > 0
-        ? `<br/><small style="color: var(--p2-blue)">Kalan: ${installmentDetails.remaining} / ${installmentDetails.total} ay</small>`
-        : `<br /><small style="color: var(--success)">Taksit Bitti 🎉</small>`;
+        ? `<br/><small style="color: var(--p2-blue)">Remaining: ${installmentDetails.remaining} / ${installmentDetails.total} mos</small>`
+        : `<br /><small style="color: var(--success)">Installment Finished 🎉</small>`;
     }
   } else {
     paymentHtml = "-";
@@ -485,7 +484,7 @@ const updateItem = (id) => {
 }
 
 const exportJSON = () => {
-  if (wishlist.length === 0) return createToast({type: 'info', message: 'İndirilecek veri yok!' });
+  if (wishlist.length === 0) return createToast({type: 'info', message: 'No data to export!' });
   
   const jsonString = JSON.stringify(wishlist, null, 2);
   const blob = new Blob([jsonString], { type: "application/json" });
@@ -513,19 +512,19 @@ const importJSON = (event) => {
         updateWishlist(importedData);
         createToast({
           type: 'success',
-          message: 'Veriler başarıyla yüklendi! 🎉'
+          message: 'Data successfully loaded! 🎉'
         });
 
       } else {
         createToast({
           type: 'error',
-          message: 'Geçersiz dosya biçimi!'
+          message: 'Invalid file format!'
         });
       }
     } catch (err) {
       createToast({
           type: 'error',
-          message: 'JSON dosyası okunamadı!'
+          message: 'Could not read JSON file!'
         });
     }
   }
@@ -596,7 +595,7 @@ FORM.addEventListener('submit', (event) => {
     wishlist.push({
       id: crypto.randomUUID(), 
       initialPrice: formEntries.price,
-      createdAt: new Date().toLocaleDateString("tr-TR"),
+      createdAt: new Date().toISOString().slice(0, 10),
       ...formEntries
     });
   }
@@ -615,7 +614,7 @@ VIEW.addEventListener('click', async (event) => {
 
   if (deleteBtn) { 
     const isConfirmed = await showConfirm({
-      message: 'Bu ürünü silmek istediğinize emin misiniz?', 
+      message: 'Are you sure you want to delete this item?', 
       targetElement: deleteBtn
     });
 
@@ -674,7 +673,7 @@ UI_RATES_FORM.addEventListener('submit', (event) => {
       isManual: true
     }));
 
-    updateRateUI(false, 'Manuel Ayarlandı');
+    updateRateUI(false, 'Manually Set');
     updateWishlist(wishlist);
   });
 
