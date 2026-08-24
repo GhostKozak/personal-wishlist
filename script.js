@@ -54,6 +54,7 @@ let wishlist = JSON.parse(localStorage.getItem('myWishlist')) || [];
 let budget = JSON.parse(localStorage.getItem('budgetLimit')) || 0;
 let priorityChart = null;
 let currentSort = { key: null, order: 'asc' }
+let currentLang = localStorage.getItem('wishlist_lang') || (navigator.language.startsWith('tr') ? 'tr' : 'en');
 
 const PRIORITY_MAP = {
   'important-urgent': { score: 1, label: 'P1: Urgent & Important', class: 'badge-p1' },
@@ -484,7 +485,7 @@ const updateItem = (id) => {
 }
 
 const exportJSON = () => {
-  if (wishlist.length === 0) return createToast({type: 'info', message: 'No data to export!' });
+  if (wishlist.length === 0) return createToast({type: 'info', message: t('exportNoData') });
   
   const jsonString = JSON.stringify(wishlist, null, 2);
   const blob = new Blob([jsonString], { type: "application/json" });
@@ -672,7 +673,7 @@ UI_RATES_FORM.addEventListener('submit', (event) => {
       timestamp: Date.now(),
       isManual: true
     }));
-
+ 
     updateRateUI(false, 'Manually Set');
     updateWishlist(wishlist);
   });
