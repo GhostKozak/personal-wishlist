@@ -459,6 +459,7 @@ const updateWishlist = (updatedArray) => {
 
 const resetFormState = () => {
   FORM.reset();
+  clearAllFieldErrors();
   currentEditID = null;
   FORM.elements.submitBtn.textContent = 'Save to Wishlist';
   document.querySelector('section.form-section > h2').textContent = "Add New Item";
@@ -584,10 +585,85 @@ const toggleTheme = () => {
   updateThemeUI(currentTheme);
 }
 
+const showFieldError = (inputElement, message) => {
+  inputElement.classList.add('input-error');
+
+  // Varsa önceki hata mesajını kaldır
+  const existingError = inputElement.parentElement.querySelector('.error-text');
+  if (existingError) existingError.remove();
+
+  // Yeni hata span'i oluştur
+  const errorSpan = document.createElement('span');
+  errorSpan.className = 'error-text';
+  errorSpan.textContent = message;
+
+  inputElement.parentElement.appendChild(errorSpan);
+};
+
+const clearAllFieldErrors = () => {
+  FORM.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+  FORM.querySelectorAll('.error-text').forEach(el => el.remove());
+};
+
+const formValidation = (input) => {
+  clearAllFieldErrors();
+
+  let isValid = true;
+  let firstInvalidInput = null;
+
+  // 1. Name validation
+  if (!input.name || input.name.trim().length < 2) {
+    showFieldError(FORM.elements.name, 'Please enter a valid item name (at least 2 chars).');
+    if (!firstInvalidInput) firstInvalidInput = FORM.elements.name;
+    isValid = false;
+  }
+  
+  // 2. Price validation
+  const parsedPrice = Number(input.price);
+  if (isNaN(parsedPrice) || parsedPrice <= 0) {
+    showFieldError(FORM.elements.price, 'Price must be a valid number greater than 0.');
+    if (!firstInvalidInput) firstInvalidInput = FORM.elements.price;
+    isValid = false;
+  }
+
+  // URL Helper
+  const isValidUrl = (url) => {
+    if (!url || url.trim() === '') return true;
+    try {
+      const parsed = new URL(url.trim());
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
+  // 3. Link validation
+  if (!isValidUrl(input.link)) {
+    showFieldError(FORM.elements.link, 'Main link must be a valid URL (e.g. https://...).');
+    if (!firstInvalidInput) firstInvalidInput = FORM.elements.link;
+    isValid = false;
+  }
+
+  // 4. Alt Link validation
+  if (!isValidUrl(input.altLink)) {
+    showFieldError(FORM.elements.altLink, 'Alternative link must be a valid URL.');
+    if (!firstInvalidInput) firstInvalidInput = FORM.elements.altLink;
+    isValid = false;
+  }
+
+  // İlk hatalı inputa otomatik odaklan
+  if (firstInvalidInput) {
+    firstInvalidInput.focus();
+  }
+
+  return isValid;
+};
+
 FORM.addEventListener('submit', (event) => {
   event.preventDefault();
   const formData = new FormData(event.target);
   const formEntries = Object.fromEntries(formData);
+  if (!formValidation(formEntries)) return;
 
   if (currentEditID) {
     wishlist = wishlist.map(item => item.id === currentEditID ? { ...item, ...formEntries } : item);
@@ -604,6 +680,15 @@ FORM.addEventListener('submit', (event) => {
   resetFormState();
 
   MODAL.close();
+});
+
+FORM.addEventListener('input', (event) => {
+  const target = event.target;
+  if (target.classList.contains('input-error')) {
+    target.classList.remove('input-error');
+    const errorSpan = target.parentElement.querySelector('.error-text');
+    if (errorSpan) errorSpan.remove();
+  }
 });
 
 FORM.elements.cancelBtn.addEventListener('click', () => { resetFormState(); VIEW.scrollIntoView({ block: "center" }); MODAL.close() });

@@ -820,3 +820,14 @@ th.sort-desc .sort-icon {
 .budget-progress-bar.danger {
   background-color: var(--danger);
 }
+
+.input-error {
+  border-color: var(--danger, #f85149) !important;
+}
+
+.error-text {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--danger, #f85149);
+  margin-top: 4px;
+}
