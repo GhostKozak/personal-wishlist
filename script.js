@@ -827,6 +827,22 @@ VIEW.addEventListener("dblclick", (event) => {
   statusElement.showPicker();
 });
 
+document.addEventListener('keydown', (event) => {
+  if (event.key === '/' && event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+    event.preventDefault();
+    UI_SEARCH_INPUT.focus();
+  }
+
+  if ((event.ctrlKey || event.metaKey) &&  event.key.toLowerCase() == 'k') {
+    event.preventDefault();
+    if (MODAL.open) {
+      MODAL.close();
+    } else {
+      MODAL.showModal();
+    }
+  }
+});
+
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initAnalyticsState();
