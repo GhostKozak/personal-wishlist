@@ -8,46 +8,46 @@
 </head>
 <body>
   <header>
-    <h1>Personal Wishlist</h1>
+    <h1 data-i18n="appTitle">Personal Wishlist</h1>
     <div class="rate-status-bar">
       <span id="rate-status-badge" class="badge-status online">
         <small>USD:</small> <span id="rate-usd">...</span> TL | <small>EUR:</small> <span id="rate-eur">...</span> TL
       </span>
       <small id="rate-last-updated">(Güncelleniyor...)</small>
-      <button id="btn-edit-rates" title="Kurları Manuel Düzenle">⚙️</button>
+      <button id="btn-edit-rates" title="Kurları Manuel Düzenle" data-i18n-title="manualRateTitle" aria-label="Kurları Manuel Düzenle">⚙️</button>
     </div>
   </header>
 
   <main>
     <section class="top-controls">
-      <button command="show-modal" commandfor="newItemModal">+ Add New Item</button>
-      <button id="btn-toggle-analytics">📊 Analytics</button>
-      <button id="btn-theme-toggle">🌙 | ☀️ Toggle Dark/Light Mode</button>
-      <button id="btn-lang-toggle" class="btn-icon" title="Change Language">🌐 TR</button>
+      <button command="show-modal" commandfor="newItemModal" data-i18n="addNewItemButton">+ Add New Item</button>
+      <button id="btn-toggle-analytics" data-i18n="toggleAnalytics">📊 Analytics</button>
+      <button id="btn-theme-toggle" aria-label="Toggle Dark/Light Mode">🌙</button>
+      <button id="btn-lang-toggle" class="btn-icon" title="Change Language" data-i18n-keep="true" aria-label="Change Language">🌐 TR</button>
     </section>
 
     <dialog id="newItemModal">
       <section class="form-section modal">      
         <h2>
-          <span id="modal-title-text">Add New Item</span>
+          <span id="modal-title-text" data-i18n="modalTitle">Add New Item</span>
         </h2>
         <button command="close" commandfor="newItemModal" class="modal-close">❌</button>
         <form id="wishlist-form">
           <div class="form-group">
-            <label for="item-name">Name : </label>
-            <input type="text" id="item-name" name="name" required placeholder="Item name" autocomplete="off">
+            <label for="item-name" data-i18n="itemName">Name : </label>
+            <input type="text" id="item-name" name="name" required placeholder="Item name" autocomplete="off" data-i18n-placeholder="itemNamePlaceholder">
           </div>
 
           <div class="form-group">
-            <label for="item-link">Links : </label>
+            <label for="item-link" data-i18n="itemLink">Links : </label>
             <div class="input-row">
-              <input type="url" id="item-link" name="link" placeholder="Main Link (https://...)">
-              <input type="url" id="item-altLink" name="altLink" placeholder="Alt Link (https://...)">
+              <input type="url" id="item-link" name="link" placeholder="Main Link (https://...)" data-i18n-placeholder="mainLinkPlaceholder">
+              <input type="url" id="item-altLink" name="altLink" placeholder="Alt Link (https://...)" data-i18n-placeholder="altLinkPlaceholder">
             </div>
           </div>
 
           <div class="form-group">
-            <label for="item-price">Price : </label>
+            <label for="item-price" data-i18n="itemPrice">Price : </label>
             <div class="input-row">
               <input type="number" id="item-price" name="price" step="0.01" min="0" placeholder="0.00" required>
               <select name="currency" id="item-currency">
@@ -59,7 +59,7 @@
           </div>
 
           <div class="form-group">
-            <label for="item-importance">Importance : </label>
+            <label for="item-importance" data-i18n="itemImportance">Importance : </label>
             <select name="importance" id="item-importance" required>
               <option value="important">Important (Gerekli / Kritik)</option>
               <option value="not-important">Not Important (Konfor / İstek)</option>
@@ -67,7 +67,7 @@
           </div>
 
           <div class="form-group">
-            <label for="item-urgency">Urgency : </label>
+            <label for="item-urgency" data-i18n="itemUrgency">Urgency : </label>
             <select name="urgency" id="item-urgency" required>
               <option value="urgent">Urgent (Hemen Lazım)</option>
               <option value="not-urgent">Not Urgent (Zamanı Var)</option>
@@ -75,7 +75,7 @@
           </div>
 
           <div class="form-group">
-            <label for="item-status">Status : </label>
+            <label for="item-status" data-i18n="itemStatus">Status : </label>
             <select name="status" id="item-status">
               <option value="wishlist">💭 Wishlist</option>
               <option value="researching">🔍 Researching</option>
@@ -85,12 +85,12 @@
           </div>
 
           <div class="form-group">
-            <label for="item-purchaseDate">Purchase Date</label>
+            <label for="item-purchaseDate" data-i18n="itemPurchaseDate">Purchase Date</label>
             <input type="date" name="purchaseDate" id="item-purchaseDate">
           </div>
 
           <div class="form-group">
-            <label for="item-installmentCount">Installment Count :</label>
+            <label for="item-installmentCount" data-i18n="itemInstallmentCount">Installment Count :</label>
             <select name="installmentCount" id="item-installmentCount">
               <option value="1">1</option>
               <option value="2">2</option>
@@ -108,36 +108,36 @@
           </div>
 
           <div class="form-group">
-            <label for="item-note">Note : </label>
+            <label for="item-note" data-i18n="itemNote">Note : </label>
             <textarea name="note" id="item-note" rows="3"></textarea>
           </div>
 
-          <button type="submit" name="submitBtn">Save to Wishlist</button>
-          <button type="button" name="cancelBtn" disabled>Cancel</button>
+          <button type="submit" name="submitBtn" data-i18n="saveWishlist">Save to Wishlist</button>
+          <button type="button" name="cancelBtn" disabled data-i18n="cancel">Cancel</button>
         </form>
       </section>
     </dialog>
 
     <section class="analytics-container" hidden>
       <section class="summary-section">
-        <h2>Budget AND Installment Summary</h2>
+        <h2 data-i18n="budgetAndInstallmentSummary">Budget AND Installment Summary</h2>
         <div class="summary-cards">
           <div class="card">
-            <span class="card-title">Total Wishlist Value</span>
+            <span class="card-title" data-i18n="totalWishlistValue">Total Wishlist Value</span>
             <span class="card-value" id="total-price">0,00 TL</span>
           </div>
           <div class="card">
-            <span class="card-title">Montly Installment Total</span>
+            <span class="card-title" data-i18n="monthlyInstallmentTotal">Montly Installment Total</span>
             <span class="card-value" id="monthly-installment">0,00 TL / monthly</span>
           </div>
           <div class="card">
-            <span class="card-title">Installment Items</span>
+            <span class="card-title" data-i18n="installmentItems">Installment Items</span>
             <span class="card-value" id="installment-count">0 Item</span>
           </div>
           <div class="card budget-card">
             <div class="budget-card-header">
-              <span class="card-title">Budget Limit</span>
-              <button id="btn-edit-budget" class="btn-icon" title="Set Budget" onclick="budgetModal.showModal()">⚙️</button>
+              <span class="card-title" data-i18n="budgetLimitTitle">Budget Limit</span>
+              <button id="btn-edit-budget" class="btn-icon" title="Set Budget" onclick="budgetModal.showModal()" data-i18n-title="setBudgetTitle" aria-label="Set Budget">⚙️</button>
             </div>
             <span class="card-value" id="budget-limit-text">0,00 TL</span>
 
@@ -157,24 +157,24 @@
     </section>
 
     <section class="table-section">
-      <h2>My Wishlist
+      <h2 data-i18n="myWishlist">My Wishlist
         <div class="imp-exp-section">
-          <button id="btn-export">📥 Export JSON</button>
-          <button id="btn-import-trigger">📤 Import JSON</button>
+          <button id="btn-export" data-i18n="exportJson">📥 Export JSON</button>
+          <button id="btn-import-trigger" data-i18n="importJson">📤 Import JSON</button>
           <input type="file" id="file-import" accept=".json" style="display: none;">
         </div>
       </h2>
       <aside class="filter-section">
-        <input type="text" name="filterSearch" id="search-input" placeholder="Wishlist name or note content">
+        <input type="text" name="filterSearch" id="search-input" placeholder="Wishlist name or note content" data-i18n-placeholder="searchPlaceholder">
         <select name="filterStatus" id="filter-status">
-          <option value="all">🏡 All</option>
+          <option value="all" data-i18n="all">🏡 All</option>
           <option value="wishlist">💭 Wishlist</option>
           <option value="researching">🔍 Researching</option>
           <option value="purchased">✅ Purchased</option>
           <option value="canceled">❌ Canceled</option>
         </select>
         <select name="filterPriority" id="filter-priority">
-          <option value="all">🎯 All Priorities</option>
+          <option value="all" data-i18n="allPriorities">🎯 All Priorities</option>
           <option value="p1">🔴 P1: Urgent & Important</option>
           <option value="p2">🔵 P2: Important</option>
           <option value="p3">🟡 P3: Urgent</option>
@@ -185,12 +185,12 @@
         <table>
           <thead>
             <tr>
-              <th class="sortable" data-sort="name">Name <span class="sort-icon">↕</span></th>
-              <th class="sortable" data-sort="price">Price <span class="sort-icon">↕</span></th>
-              <th class="sortable" data-sort="payment">Payment <span class="sort-icon">↕</span></th>
-              <th class="sortable" data-sort="priority">Priority <span class="sort-icon">↕</span></th>
-              <th class="sortable" data-sort="status">Status <span class="sort-icon">↕</span></th>
-              <th>Actions</th>
+              <th class="sortable" data-sort="name" data-i18n="itemName">Name <span class="sort-icon">↕</span></th>
+              <th class="sortable" data-sort="price" data-i18n="itemPrice">Price <span class="sort-icon">↕</span></th>
+              <th class="sortable" data-sort="payment" data-i18n="payment">Payment <span class="sort-icon">↕</span></th>
+              <th class="sortable" data-sort="priority" data-i18n="priority">Priority <span class="sort-icon">↕</span></th>
+              <th class="sortable" data-sort="status" data-i18n="status">Status <span class="sort-icon">↕</span></th>
+              <th data-i18n="actions">Actions</th>
             </tr>
           </thead>
           <tbody id="wishlist-view">
@@ -200,18 +200,18 @@
       </div>
       <div class="empty-state">
         <span>📦</span>
-        <p>Listenizde henüz bir ürün bulunmuyor veya arama kriterlerine uygun sonuç bulunamadı.</p>
+        <p data-i18n="emptyState">Listenizde henüz bir ürün bulunmuyor veya arama kriterlerine uygun sonuç bulunamadı.</p>
       </div>
     </section>
   </main>
 
   <footer>
-    <p>&copy; 2026 Wishlist App</p>
+    <p data-i18n="appFooter">&copy; 2026 Wishlist App</p>
   </footer>
 
   <div id="toast-container" class="toast">
-    <h2 class="toast__title">Toast Title</h2>
-    <p class="toast__message">Lorem ipsum dolar</p>
+    <h2 class="toast__title" data-i18n="toastTitle">Toast Title</h2>
+    <p class="toast__message" data-i18n="toastMessage">Lorem ipsum dolar</p>
     <div class="toast__timer">
       <div class="toast__timer__progress"></div>
     </div>
@@ -219,10 +219,10 @@
 
   <dialog id="confirm-modal" popover="a">
     <form method="dialog">
-      <p class="confirm-message">Emin misin?</p>
+      <p class="confirm-message" data-i18n="confirmDeleteMessage">Emin misin?</p>
       <menu>
-        <button value="false" class="cancelBtn">İptal</button>
-        <button value="true" class="confirmBtn">Onayla</button>
+        <button value="false" class="cancelBtn" data-i18n="cancelLabel">İptal</button>
+        <button value="true" class="confirmBtn" data-i18n="confirmLabel">Onayla</button>
       </menu>
     </form>
   </dialog>
@@ -230,30 +230,30 @@
   <dialog id="ratesModal">
     <form method="dialog">
       <div class="form-group">
-        <label for="usd-input">USD</label>
+        <label for="usd-input" data-i18n="rateUsdLabel">USD</label>
         <input type="number" name="USD" id="usd-input" min="0.01" step="any">
       </div>
       <div class="form-group">
-        <label for="eur-input">EUR</label>
+        <label for="eur-input" data-i18n="rateEurLabel">EUR</label>
         <input type="number" name="EUR" id="eur-input" min="0.01" step="any">
       </div>
       <menu>
-        <button type="button" class="cancelBtn" name="cancelBtn" onclick="ratesModal.close()">Cancel</button>
-        <button type="submit" class="confirmBtn">Save</button>
+        <button type="button" class="cancelBtn" name="cancelBtn" onclick="ratesModal.close()" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="confirmBtn" data-i18n="save">Save</button>
       </menu>
     </form>
   </dialog>
 
   <dialog id="budgetModal">
     <form method="dialog" id="budget-form">
-      <h3>Set Monthly / Total Budget</h3>
+      <h3 data-i18n="setMonthlyTotalBudget">Set Monthly / Total Budget</h3>
       <div class="form-group">
-        <label for="budget-input">Target Budget (TL):</label>
-        <input type="number" name="budget" id="budget-input" min="0" step="50" placeholder="e.g. 15000" required>
+        <label for="budget-input" data-i18n="targetBudgetLabel">Target Budget (TL):</label>
+        <input type="number" name="budget" id="budget-input" min="0" step="50" placeholder="e.g. 15000" data-i18n-placeholder="targetBudgetPlaceholder" required>
       </div>
       <menu>
-        <button type="button" class="cancelBtn" name="cancelBtn" onclick="budgetModal.close()">Cancel</button>
-        <button type="submit" class="confirmBtn">Save Budget</button>
+        <button type="button" class="cancelBtn" name="cancelBtn" onclick="budgetModal.close()" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="confirmBtn" data-i18n="saveBudget">Save Budget</button>
       </menu>
     </form>
   </dialog>

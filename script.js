@@ -57,22 +57,28 @@ let currentSort = { key: null, order: 'asc' }
 let currentLang = localStorage.getItem('wishlist_lang') || (navigator.language.startsWith('tr') ? 'tr' : 'en');
 
 const PRIORITY_MAP = {
-  'important-urgent': { score: 1, label: 'P1: Urgent & Important', class: 'badge-p1' },
-  'important-not-urgent': { score: 2, label: 'P2: Important', class: 'badge-p2' },
-  'not-important-urgent': { score: 3, label: 'P3: Urgent', class: 'badge-p3' },
-  'not-important-not-urgent': { score: 4, label: 'P4: Someday', class: 'badge-p4' }
-}
+  'important-urgent': { score: 1, translationKey: 'priorityP1', class: 'badge-p1' },
+  'important-not-urgent': { score: 2, translationKey: 'priorityP2', class: 'badge-p2' },
+  'not-important-urgent': { score: 3, translationKey: 'priorityP3', class: 'badge-p3' },
+  'not-important-not-urgent': { score: 4, translationKey: 'priorityP4', class: 'badge-p4' }
+};
 
 const STATUS_MAP = {
-  wishlist: '💭 Wishlist',
-  researching: '🔍 Researching',
-  purchased: '✅ Purchased',
-  canceled: '❌ Canceled'
-}
+  wishlist: 'statusWishlist',
+  researching: 'statusResearching',
+  purchased: 'statusPurchased',
+  canceled: 'statusCanceled'
+};
 
 const formatCurrency = (price) => Number(price || 0).toLocaleString("tr-TR", { minimumFractionDigits: 2,maximumFractionDigits: 2 });
 
+const getStatusLabel = (status) => t(STATUS_MAP[status] || status);
+
 const getPriorityInfo = (importance, urgency) => PRIORITY_MAP[`${importance}-${urgency}`] || PRIORITY_MAP['not-important-not-urgent'];
+
+const getPriorityLabel = (importance, urgency) => t(getPriorityInfo(importance, urgency).translationKey);
+
+const getPriorityLabelByKey = (priorityKey) => t(PRIORITY_MAP[priorityKey]?.translationKey || 'priorityP4');
 
 const currencyToTRY = (price, currency) => Number(price || 0) * (EXCHANGE_RATES[currency] || 1);
 
@@ -148,7 +154,7 @@ const fetchExchangeRates = async () => {
       renderSummaryCards();
     }
   } catch (error) {
-    updateRateUI(false, '⚠️ Failed to fetch live rates!');
+    updateRateUI(false, t('ratesFailed'));
   }
 }
 
@@ -158,6 +164,12 @@ const renderPriorityChart = () => {
   if (!ctx || !chartSection) return;
 
   const dataValues = getPriorityBudgetDistribution();
+  const priorityChartLabels = [
+    'important-urgent',
+    'important-not-urgent',
+    'not-important-urgent',
+    'not-important-not-urgent'
+  ].map(getPriorityLabelByKey);
 
   const hasData = dataValues.some(value => value > 0);
 
@@ -180,7 +192,7 @@ const renderPriorityChart = () => {
   priorityChart = new Chart(ctx, {
     type: 'pie',
     data: {
-      labels: ['P1: Urgent & Important', 'P2: Important', 'P3: Urgent', 'P4: Someday'],
+      labels: priorityChartLabels,
       datasets: [{
         data: dataValues,
         backgroundColor: ['#ff6384', '#36a2eb', '#ffcd67', '#64748b'],
@@ -260,10 +272,10 @@ const updateRateUI = (isLive, lastUpdatedText) => {
   if (UI_RATE_STATUS) {
     if (isLive) {
       UI_RATE_STATUS.className = 'badge-status online';
-      UI_RATE_STATUS.title = 'Rates are kept up to date via live API.';
+      UI_RATE_STATUS.title = t('ratesTooltipLive');
     } else {
       UI_RATE_STATUS.className = 'badge-status warning';
-      UI_RATE_STATUS.title = 'Live rate connection failed! Using fixed/manual rates.';
+      UI_RATE_STATUS.title = t('ratesTooltip');
     }
   }
 };
@@ -319,7 +331,10 @@ const renderSummaryCards = () => {
   
   if (budget !== 0) {
     UI_BUDGET_LIMIT_TEXT.innerText = `${formatCurrency(budget)} TRY`;
-    UI_BUDGET_STATUS_TEXT.innerText = `%${Math.round(percentageBudget)} used (Remaining: ${formatCurrency(remainingBudget)} TL)`;
+    UI_BUDGET_STATUS_TEXT.innerText = t('budgetUsed', {
+      percent: Math.round(percentageBudget),
+      remaining: formatCurrency(remainingBudget)
+    });
     UI_BUDGET_PROGRESS_BAR.style.width = `${Math.min(percentageBudget, 100)}%`
     UI_BUDGET_PROGRESS_BAR.classList.remove('safe', 'warning', 'danger');
     if (percentageBudget >= 90) {
@@ -330,7 +345,7 @@ const renderSummaryCards = () => {
       UI_BUDGET_PROGRESS_BAR.classList.add('safe');
     }
   } else {
-    UI_BUDGET_STATUS_TEXT.innerText = 'No budget set';
+    UI_BUDGET_STATUS_TEXT.innerText = t('noBudget');
     UI_BUDGET_PROGRESS_BAR.classList.remove('safe', 'warning', 'danger');
     UI_BUDGET_PROGRESS_BAR.style.width = '0%';
   }
@@ -353,13 +368,13 @@ const generateTableRow = element => {
   if (priceDiff > 0) diffHtml = `<br><small class="priceDiff negative">▲ +${formatCurrency(priceDiff)} TL</small>`;
   else if (priceDiff < 0) diffHtml = `<br><small class="priceDiff positive">▼ -${formatCurrency(Math.abs(priceDiff))} TL</small>`;
 
-  let paymentHtml = "Cash";
+  let paymentHtml = t('cash');
   if (element.status === "purchased") {
     if (installmentDetails) {
-      paymentHtml = `Installment <br><small>${formatCurrency(currencyToTRY(element.price, element.currency) / installmentDetails.total)} TL/mo</small>`;
+      paymentHtml = `${t('installment')} <br><small>${formatCurrency(currencyToTRY(element.price, element.currency) / installmentDetails.total)} TL/mo</small>`;
       paymentHtml += installmentDetails.remaining > 0
-        ? `<br/><small style="color: var(--p2-blue)">Remaining: ${installmentDetails.remaining} / ${installmentDetails.total} mos</small>`
-        : `<br /><small style="color: var(--success)">Installment Finished 🎉</small>`;
+        ? `<br/><small style="color: var(--p2-blue)">${t('remainingMonths', { remaining: installmentDetails.remaining, total: installmentDetails.total })}</small>`
+        : `<br /><small style="color: var(--success)">${t('installmentFinished')}</small>`;
     }
   } else {
     paymentHtml = "-";
@@ -371,7 +386,7 @@ const generateTableRow = element => {
     <tr ${rowClass}>
       <td>
         ${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">${element.name}</a>` : element.name}
-        ${element.altLink ? `<a href="${element.altLink}" title="Alt Link" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
+        ${element.altLink ? `<a href="${element.altLink}" title="${t('altLink')}" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
         ${element.note ? `<br><small class="has-tooltip" data-tooltip="${element.note}">📝</small>` : ""}
       </td>
       <td>
@@ -379,12 +394,12 @@ const generateTableRow = element => {
         ${diffHtml}
       </td>
       <td>${paymentHtml}</td>
-      <td><span class="badge ${priority.class}">${priority.label}</span></td>
-      <td class="status-cell" data-id="${element.id}" data-selected="${element.status}"><span class="status-label">${STATUS_MAP[element.status] || element.status}</span></td>
+      <td><span class="badge ${priority.class}">${getPriorityLabel(element.importance, element.urgency)}</span></td>
+      <td class="status-cell" data-id="${element.id}" data-selected="${element.status}"><span class="status-label">${getStatusLabel(element.status)}</span></td>
       <td>
         <div class="actionButtons">
-          <button class="btn-edit" data-id="${element.id}">Edit</button>
-          <button class="btn-delete" data-id="${element.id}">Delete</button>
+          <button class="btn-edit" data-id="${element.id}">${t('edit')}</button>
+          <button class="btn-delete" data-id="${element.id}">${t('delete')}</button>
         </div>
       </td>
     </tr>
@@ -461,8 +476,8 @@ const updateWishlist = (updatedArray) => {
 const resetFormState = () => {
   FORM.reset();
   currentEditID = null;
-  FORM.elements.submitBtn.textContent = 'Save to Wishlist';
-  document.querySelector('section.form-section > h2').textContent = "Add New Item";
+  FORM.elements.submitBtn.textContent = t('saveWishlist');
+  document.querySelector('section.form-section > h2').textContent = t('addNewItem');
   FORM.elements.cancelBtn.disabled = true;
 }
 
@@ -477,8 +492,8 @@ const updateItem = (id) => {
     }
   });
 
-  document.querySelector('section.form-section > h2').textContent = "Update Item";
-  FORM.elements.submitBtn.textContent = 'Update Item';
+  document.querySelector('section.form-section > h2').textContent = t('updateItem');
+  FORM.elements.submitBtn.textContent = t('updateItem');
   FORM.elements.cancelBtn.disabled = false;
 
   MODAL.showModal();
@@ -513,19 +528,19 @@ const importJSON = (event) => {
         updateWishlist(importedData);
         createToast({
           type: 'success',
-          message: 'Data successfully loaded! 🎉'
+          message: t('importSuccess')
         });
 
       } else {
         createToast({
           type: 'error',
-          message: 'Invalid file format!'
+          message: t('importInvalid')
         });
       }
     } catch (err) {
       createToast({
           type: 'error',
-          message: 'Could not read JSON file!'
+          message: t('importError')
         });
     }
   }
@@ -562,11 +577,11 @@ const initAnalyticsState = () => {
 };
 
 const updateThemeUI = (theme) => {
-  if (theme === 'dark') {
-    UI_THEME_TOGGLE_BUTTON.textContent = '☀️ Toggle Light Mode'
-  } else {
-    UI_THEME_TOGGLE_BUTTON.textContent = '🌙 Toggle Dark Mode'
-  }
+  if (!UI_THEME_TOGGLE_BUTTON) return;
+
+  const label = theme === 'dark' ? t('toggleLightMode') : t('toggleDarkMode');
+  UI_THEME_TOGGLE_BUTTON.textContent = label;
+  UI_THEME_TOGGLE_BUTTON.setAttribute('aria-label', label);
 }
 
 const initTheme = () => {
@@ -615,7 +630,7 @@ VIEW.addEventListener('click', async (event) => {
 
   if (deleteBtn) { 
     const isConfirmed = await showConfirm({
-      message: 'Are you sure you want to delete this item?', 
+      message: t('confirmDelete'), 
       targetElement: deleteBtn
     });
 
@@ -674,7 +689,7 @@ UI_RATES_FORM.addEventListener('submit', (event) => {
       isManual: true
     }));
  
-    updateRateUI(false, 'Manually Set');
+    updateRateUI(false, t('ratesManualSet'));
     updateWishlist(wishlist);
   });
 
