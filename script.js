@@ -24,7 +24,8 @@ const UI_INSTALLMENT_COUNT = document.getElementById('installment-count');
 const UI_SEARCH_INPUT = document.getElementById('search-input');
 const UI_FILTER_STATUS = document.getElementById('filter-status');
 const UI_FILTER_PRIORITY = document.getElementById('filter-priority');
-const UI_EXPORT_BUTTON = document.getElementById('btn-export');
+const UI_JSON_EXPORT_BUTTON = document.getElementById('btn-export-json');
+const UI_CSV_EXPORT_BUTTON = document.getElementById('btn-export-csv');
 const UI_IMPORT_BUTTON = document.getElementById('btn-import-trigger');
 const UI_FILE_IMPORT = document.getElementById('file-import');
 const UI_RATE_USD = document.getElementById('rate-usd');
@@ -499,6 +500,39 @@ const exportJSON = () => {
   URL.revokeObjectURL(url);
 }
 
+const exportCSV = () => {
+  if (wishlist.length === 0) return createToast({ type: 'info', message: 'No data to export!' });
+
+  const headers = Array.from(new Set(wishlist.flatMap(item => Object.keys(item))));
+
+  const formatCell = value => {
+    if (value === null || value === undefined) return "";
+    const str = String(value);
+    if (str.includes('"') || str.includes(',') || str.includes('\n')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const headerRow = headers.join(",");
+
+  const dataRows = wishlist.map(item => headers.map(header => formatCell(item[header])).join(","));
+  
+  const csvData = [headerRow, ...dataRows].join("\n");
+  // return [headerRow, ...dataRows].join("\n");
+
+  const bom = "\uFEFF"; // for Turkish Characters
+  const blob = new Blob([bom + csvData], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `wishlist-backup-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
 const importJSON = (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -723,7 +757,9 @@ UI_FILTER_PRIORITY.addEventListener('change', (event) => {
   renderWishlist();
 });
 
-UI_EXPORT_BUTTON.addEventListener('click', () => exportJSON());
+UI_JSON_EXPORT_BUTTON.addEventListener('click', () => exportJSON());
+
+UI_CSV_EXPORT_BUTTON.addEventListener('click', () => exportCSV());
 
 UI_IMPORT_BUTTON.addEventListener('click', (event) => UI_FILE_IMPORT.click());
 
