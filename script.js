@@ -533,10 +533,7 @@ const exportCSV = () => {
   URL.revokeObjectURL(url);
 }
 
-const importJSON = (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-
+const importJSON = (file) => {
   const reader = new FileReader();
 
   reader.onload = (e) => {
@@ -565,6 +562,78 @@ const importJSON = (event) => {
   }
 
   reader.readAsText(file);
+}
+
+const importCSV = (file) => {
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    try {
+      const importedData = e.target.result;
+
+      // Clean BOM
+      const cleanedData = importedData.replace(/^\uFEFF/, '');
+
+      const rows = cleanedData
+        .split(/\r?\n/)
+        .filter(row => row.trim() !== '');
+
+      if (rows.length === 0) {
+        createToast({ type: 'error', message: 'CSV file is empty!' });
+        return;
+      }
+      
+      const productRows = rows.map(row => 
+        row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+          .map(cell => 
+            cell.trim()
+              .replace(/^"|"$/g, '')
+              .replace(/""/g, '"')
+          )
+      );
+
+      const headers = productRows[0];
+      const products = productRows.slice(1);
+
+      const formattedProducts = products.map(product => {
+        return Object.fromEntries(
+          headers.map((header,index) => [header, product[index]])
+        )
+      })
+
+      updateWishlist(formattedProducts);
+      createToast({
+        type: 'success',
+        message: 'Data successfully loaded! 🎉'
+      });
+
+    } catch (error) {
+      createToast({
+        type: 'error',
+        message: `Could not read CSV file! ${error}`
+      });
+    }
+  }
+
+  reader.readAsText(file);
+}
+
+const importFile = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  switch (file.type) {
+    case 'application/json':
+      importJSON(file);
+      break;
+    case 'text/csv':
+      importCSV(file);
+      break;
+    default:
+      break;
+  }
+
+  console.log(file);
   event.target.value = '';
 }
 
@@ -763,7 +832,7 @@ UI_CSV_EXPORT_BUTTON.addEventListener('click', () => exportCSV());
 
 UI_IMPORT_BUTTON.addEventListener('click', (event) => UI_FILE_IMPORT.click());
 
-UI_FILE_IMPORT.addEventListener('change', (event) => importJSON(event));
+UI_FILE_IMPORT.addEventListener('change', (event) => importFile(event));
 
 UI_BTN_EDIT_RATES?.addEventListener('click', () => {
   UI_RATES_DIALOG.showModal();
