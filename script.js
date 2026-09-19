@@ -55,6 +55,7 @@ let wishlist = JSON.parse(localStorage.getItem('myWishlist')) || [];
 let budget = JSON.parse(localStorage.getItem('budgetLimit')) || 0;
 let priorityChart = null;
 let currentSort = { key: null, order: 'asc' }
+let currentDraggedItemId = null;
 
 const PRIORITY_MAP = {
   'important-urgent': { score: 1, label: 'P1: Urgent & Important', class: 'badge-p1' },
@@ -368,7 +369,19 @@ const generateTableRow = element => {
   const rowClass = element.status === "canceled" ? 'style="opacity: 0.5;"' : "";
 
   return `
-    <tr ${rowClass}>
+    <tr ${rowClass} data-wishlist-id="${element.id}">
+      <td class="drag-handle" draggable="true">
+        <span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="9" cy="6" r="1.5"></circle>
+            <circle cx="15" cy="6" r="1.5"></circle>
+            <circle cx="9" cy="12" r="1.5"></circle>
+            <circle cx="15" cy="12" r="1.5"></circle>
+            <circle cx="9" cy="18" r="1.5"></circle>
+            <circle cx="15" cy="18" r="1.5"></circle>
+          </svg>
+        </span>
+      </td>
       <td>
         ${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">${element.name}</a>` : element.name}
         ${element.altLink ? `<a href="${element.altLink}" title="Alt Link" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
@@ -946,6 +959,105 @@ document.addEventListener('keydown', (event) => {
       MODAL.showModal();
     }
   }
+});
+
+const clearDropIndicators = () => {
+  VIEW.querySelectorAll('.drop-target-above, .drop-target-below').forEach(row => {
+    row.classList.remove('drop-target-above', 'drop-target-below');
+  });
+};
+
+VIEW.addEventListener('dragstart', (event) => {
+  const handle = event.target.closest('.drag-handle');
+  if (!handle) {
+    event.preventDefault();
+    return;
+  }
+
+  const targetRow = handle.closest('tr[data-wishlist-id]');
+  if (!targetRow) return;
+
+  const isFiltered = filters.search !== '' || filters.status !== 'all' || filters.priority !== 'all';
+  if (isFiltered) {
+    event.preventDefault();
+    return;
+  }
+
+  currentDraggedItemId = targetRow.dataset.wishlistId;
+  targetRow.classList.add('dragging');
+
+  if (event.dataTransfer) {
+    event.dataTransfer.setData('text/plain', currentDraggedItemId);
+    event.dataTransfer.effectAllowed = 'move';
+  }
+});
+
+VIEW.addEventListener('dragover', (event) => {
+  event.preventDefault();
+
+  const targetRow = event.target.closest('tr[data-wishlist-id]');
+  if (!targetRow || targetRow.classList.contains('dragging')) return;
+
+  clearDropIndicators();
+
+  const rect = targetRow.getBoundingClientRect();
+  const isAbove = (event.clientY - rect.top) < (rect.height / 2);
+
+  if (isAbove) {
+    targetRow.classList.add('drop-target-above');
+  } else {
+    targetRow.classList.add('drop-target-below');
+  }
+});
+
+VIEW.addEventListener('drop', (event) => {
+  event.preventDefault();
+
+  const targetRow = event.target.closest('tr[data-wishlist-id]');
+  if (!targetRow) {
+    clearDropIndicators();
+    return;
+  }
+
+  const targetId = targetRow.dataset.wishlistId;
+  if (!targetId || targetId === currentDraggedItemId) {
+    clearDropIndicators();
+    return;
+  }
+
+  // Çizgileri silmeden önce alt yarıda mı kontrol et
+  const isBelow = targetRow.classList.contains('drop-target-below');
+  clearDropIndicators();
+
+  if (typeof currentSort !== 'undefined') {
+    currentSort.key = null;
+  }
+
+  const toIndex = wishlist.findIndex(item => item.id === targetId);
+  const fromIndex = wishlist.findIndex(item => item.id === currentDraggedItemId);
+
+  const reorderedWishlist = [...wishlist];
+  const [movedItem] = reorderedWishlist.splice(fromIndex, 1);
+
+  let insertIndex = toIndex + (isBelow ? 1 : 0);
+  if (fromIndex < insertIndex) {
+    insertIndex--;
+  }
+
+  reorderedWishlist.splice(insertIndex, 0, movedItem);
+  updateWishlist(reorderedWishlist);
+  updateSortIcons();
+});
+
+VIEW.addEventListener('dragend', () => {
+  const draggingRow = VIEW.querySelector('.dragging');
+  if (draggingRow) draggingRow.classList.remove('dragging');
+  currentDraggedItemId = null;
+  clearDropIndicators();
+});
+
+VIEW.addEventListener('dragleave', (event) => { 
+  if (!VIEW.contains(event.relatedTarget)) clearDropIndicators(); 
 });
 
 window.addEventListener('DOMContentLoaded', () => {

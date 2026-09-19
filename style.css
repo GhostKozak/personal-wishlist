@@ -831,3 +831,45 @@ th.sort-desc .sort-icon {
   color: var(--danger, #f85149);
   margin-top: 4px;
 }
+
+.drag-handle[draggable="true"] {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.drag-handle[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+tr {
+  user-select: text;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+tr.dragging {
+  opacity: 0.4;
+  background-color: var(--color-surface-hover, rgba(0, 0, 0, 0.05));
+}
+
+tr.drop-target-above > td {
+  border-top: 3px solid #3b82f6 !important; 
+}
+
+tr.drop-target-below > td {
+  border-bottom: 3px solid #3b82f6 !important;
+}
+
+.drag-handle span {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.drag-handle svg {
+  pointer-events: none;
+}
+
+.drag-handle {
+  cursor: grab;
+}
