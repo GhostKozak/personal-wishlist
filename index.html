@@ -259,6 +259,19 @@
     </form>
   </dialog>
 
+  <dialog id="priceHistoryModal" class="modal">
+    <div class="modal-header">
+      <h3 id="history-modal-title">Price History</h3>
+      <button command="close" commandfor="priceHistoryModal" class="modal-close">❌</button>
+    </div>
+    <div class="modal-body">
+      <div id="history-summary" class="history-summary">
+      </div>
+      <ul id="history-list" class="history-list">
+      </ul>
+    </div>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="toast.js" defer></script>
   <script src="confirmModal.js" defer></script>

@@ -7,6 +7,7 @@
  * @property {string} price - Ürün fiyatı
  * @property {string} currency
  * @property {string} initialPrice - İlk Eklendiği Fiyat
+ * @property {Object} priceHistory
  * @property {string} createdAt - Eklenme Tarih
  * @property {'important' | 'not-important'} importance - Öncelik durumu
  * @property {'urgent' | 'not-urgent'} urgency - Aciliyet durumu
@@ -45,6 +46,11 @@ const UI_BUDGET_EDIT_BUTTON = document.querySelector('.budget-card .btn-edit-bud
 const UI_BUDGET_MODAL = document.getElementById('budgetModal');
 const UI_BUDGET_MODAL_FORM = UI_BUDGET_MODAL.querySelector("form");
 const UI_THEME_TOGGLE_BUTTON = document.getElementById('btn-theme-toggle');
+const UI_PRICE_HISTORY_MODAL = document.getElementById('priceHistoryModal');
+const UI_HISTORY_MODAL_TITLE = document.getElementById('history-modal-title');
+const UI_HISTORY_SUMMARY = document.getElementById('history-summary');
+const UI_HISTORY_LIST = document.getElementById('history-list');
+const UI_BTN_CLOSE_HISTORY = document.getElementById('btn-close-history');
 const MODAL = document.getElementById('newItemModal');
 
 let EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
@@ -390,6 +396,7 @@ const generateTableRow = element => {
       <td>
         <span class="price">${formatCurrency(element.price)} ${element.currency || "TL"} </span>
         ${diffHtml}
+        ${element.priceHistory?.length > 1 ? `<button type="button" class="btn-history" data-id="${element.id}" title="Price History">📈</button>` : ''}
       </td>
       <td>${paymentHtml}</td>
       <td><span class="badge ${priority.class}">${priority.label}</span></td>
@@ -775,6 +782,62 @@ const formValidation = (input) => {
   return isValid;
 };
 
+const showPriceHistory = (itemId) => {
+  const item = wishlist.find(i => i.id === itemId);
+  if (!item || !item.priceHistory || item.priceHistory.length === 0) return;
+
+  UI_HISTORY_MODAL_TITLE.textContent = `${item.name} - Price History`;
+
+  // Toplam net değişim özeti
+  const firstRecord = item.priceHistory[0];
+  const lastRecord = item.priceHistory[item.priceHistory.length - 1];
+  const netDiff = Number(lastRecord.price) - Number(firstRecord.price);
+
+  let summaryDiff = '';
+  if (netDiff > 0) {
+    summaryDiff = `<span class="priceDiff negative">▲ +${formatCurrency(netDiff)} ${lastRecord.currency}</span>`;
+  } else if (netDiff < 0) {
+    summaryDiff = `<span class="priceDiff positive">▼ -${formatCurrency(Math.abs(netDiff))} ${lastRecord.currency}</span>`;
+  } else {
+    summaryDiff = '<span>No change</span>';
+  }
+
+  UI_HISTORY_SUMMARY.innerHTML = `
+    <small>Initial: <strong>${formatCurrency(firstRecord.price)} ${firstRecord.currency}</strong> ➔ Latest: <strong>${formatCurrency(lastRecord.price)} ${lastRecord.currency}</strong> (${summaryDiff})</small>
+  `;
+
+  // Liste elemanlarını oluştur (kronolojik sıra)
+  UI_HISTORY_LIST.innerHTML = item.priceHistory.map((record, index) => {
+    let diffBadge = '';
+
+    if (index > 0) {
+      const prevPrice = Number(item.priceHistory[index - 1].price);
+      const currPrice = Number(record.price);
+      const diff = currPrice - prevPrice;
+
+      if (diff > 0) {
+        diffBadge = `<span class="priceDiff negative" style="font-size:0.75rem;">▲ +${formatCurrency(diff)}</span>`;
+      } else if (diff < 0) {
+        diffBadge = `<span class="priceDiff positive" style="font-size:0.75rem;">▼ -${formatCurrency(Math.abs(diff))}</span>`;
+      }
+    } else {
+      diffBadge = `<small style="opacity: 0.6;">(Initial)</small>`;
+    }
+
+    return `
+      <li class="history-item">
+        <div class="history-date">${record.date}</div>
+        <div class="history-price">
+          ${formatCurrency(record.price)} ${record.currency || 'TL'}
+          ${diffBadge}
+        </div>
+      </li>
+    `;
+  }).join('');
+
+  UI_PRICE_HISTORY_MODAL.showModal();
+};
+
 FORM.addEventListener('submit', (event) => {
   event.preventDefault();
   const formData = new FormData(event.target);
@@ -782,12 +845,40 @@ FORM.addEventListener('submit', (event) => {
   if (!formValidation(formEntries)) return;
 
   if (currentEditID) {
-    wishlist = wishlist.map(item => item.id === currentEditID ? { ...item, ...formEntries } : item);
+    wishlist = wishlist.map(oldItem => { 
+      if (oldItem.id !== currentEditID) {
+        return oldItem;
+      }
+
+      const isPriceChanged = oldItem.price !== formEntries.price || oldItem.currency !== formEntries.currency;
+      const history = [...(oldItem.priceHistory || [])];
+
+      if (isPriceChanged) {
+        history.push({
+          price: formEntries.price,
+          currency: formEntries.currency,
+          date: new Date().toISOString().slice(0, 10)
+        });
+      }
+
+      return {
+        ...oldItem,
+        ...formEntries,
+        priceHistory: history
+      };
+    });
   } else {
     wishlist.push({
       id: crypto.randomUUID(), 
       initialPrice: formEntries.price,
       createdAt: new Date().toISOString().slice(0, 10),
+      priceHistory: [
+        { 
+          price: formEntries.price, 
+          currency: formEntries.currency, 
+          date: new Date().toISOString().slice(0, 10) 
+        }
+      ],
       ...formEntries
     });
   }
@@ -812,6 +903,7 @@ FORM.elements.cancelBtn.addEventListener('click', () => { resetFormState(); VIEW
 VIEW.addEventListener('click', async (event) => {
   const deleteBtn = event.target.closest('.btn-delete');
   const editBtn = event.target.closest('.btn-edit');
+  const historyBtn = event.target.closest('.btn-history');
 
   if (deleteBtn) { 
     const isConfirmed = await showConfirm({
@@ -822,6 +914,7 @@ VIEW.addEventListener('click', async (event) => {
     if (isConfirmed) { updateWishlist(wishlist.filter(item => item.id !== event.target.dataset.id)) }
   }
   if (editBtn) { updateItem(event.target.dataset.id); FORM.scrollIntoView({ block: "center" }) }
+  if (historyBtn) { showPriceHistory(historyBtn.dataset.id) }
 });
 
 UI_SEARCH_INPUT.addEventListener('input', (event) => {
@@ -907,6 +1000,8 @@ UI_TABLE_HEADER.addEventListener('click', (event) => {
 });
 
 UI_THEME_TOGGLE_BUTTON.addEventListener('click', toggleTheme);
+
+UI_BTN_CLOSE_HISTORY?.addEventListener('click', () => UI_PRICE_HISTORY_MODAL.close());
 
 VIEW.addEventListener("dblclick", (event) => {
   const statusTrigger = event.target.closest('.status-cell');
