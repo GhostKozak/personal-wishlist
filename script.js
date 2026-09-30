@@ -926,7 +926,12 @@ VIEW.addEventListener('click', async (event) => {
       targetElement: deleteBtn
     });
 
-    if (isConfirmed) { updateWishlist(wishlist.filter(item => item.id !== event.target.dataset.id)) }
+    if (isConfirmed) { 
+      const id = deleteBtn.dataset.id;
+      updateWishlist(wishlist.filter(item => item.id !== id));
+      selectedWishlistIds.delete(id);
+      updateBulkUI();
+    }
   }
   if (editBtn) { updateItem(event.target.dataset.id); FORM.scrollIntoView({ block: "center" }) }
   if (historyBtn) { showPriceHistory(historyBtn.dataset.id) }
