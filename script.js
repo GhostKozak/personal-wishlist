@@ -51,7 +51,12 @@ const UI_HISTORY_MODAL_TITLE = document.getElementById('history-modal-title');
 const UI_HISTORY_SUMMARY = document.getElementById('history-summary');
 const UI_HISTORY_LIST = document.getElementById('history-list');
 const UI_BTN_CLOSE_HISTORY = document.getElementById('btn-close-history');
+const UI_BULK_CONTAINER = document.getElementById('bulk-action-bar');
+const UI_BULK_SELECTED_ITEM_TEXT = UI_BULK_CONTAINER.querySelector('#selected-count');
+const UI_BULK_DELETE_BTN = UI_BULK_CONTAINER.querySelector('#bulk-delete');
+const UI_BULK_CANCEL_BTN = UI_BULK_CONTAINER.querySelector('#bulk-cancel');
 const MODAL = document.getElementById('newItemModal');
+const selectedWishlistIds = new Set();
 
 let EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
 let currentEditID = null;
@@ -376,6 +381,7 @@ const generateTableRow = element => {
 
   return `
     <tr ${rowClass} data-wishlist-id="${element.id}">
+      <td><input type="checkbox" data-id="${element.id}" ${selectedWishlistIds.has(element.id) ? 'checked' : ''}></td>
       <td class="drag-handle" draggable="true">
         <span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -838,6 +844,15 @@ const showPriceHistory = (itemId) => {
   UI_PRICE_HISTORY_MODAL.showModal();
 };
 
+const updateBulkUI = () => {
+  const size = selectedWishlistIds.size;
+  if (size <= 0) UI_BULK_CONTAINER.style.display = 'none'
+  else { 
+    UI_BULK_CONTAINER.style.display = 'flex';
+    UI_BULK_SELECTED_ITEM_TEXT.textContent = size
+  }
+}
+
 FORM.addEventListener('submit', (event) => {
   event.preventDefault();
   const formData = new FormData(event.target);
@@ -915,6 +930,17 @@ VIEW.addEventListener('click', async (event) => {
   }
   if (editBtn) { updateItem(event.target.dataset.id); FORM.scrollIntoView({ block: "center" }) }
   if (historyBtn) { showPriceHistory(historyBtn.dataset.id) }
+});
+
+VIEW.addEventListener('change', (event) => {
+  const checkbox = event.target.closest('input[type="checkbox"]');
+
+  if (checkbox) { 
+    const id = event.target.dataset.id;
+    const checkedStatus = event.target.checked;
+    checkedStatus === true ? selectedWishlistIds.add(id) : selectedWishlistIds.delete(id);
+    updateBulkUI();
+  }
 });
 
 UI_SEARCH_INPUT.addEventListener('input', (event) => {
@@ -1155,11 +1181,36 @@ VIEW.addEventListener('dragleave', (event) => {
   if (!VIEW.contains(event.relatedTarget)) clearDropIndicators(); 
 });
 
+UI_BULK_DELETE_BTN.addEventListener('click', async () => {
+  const count = selectedWishlistIds.size;
+  if (count === 0) return;
+
+  const isConfirmed = await showConfirm({
+    message: `Are you sure you want to delete ${count} ${count > 1 ? 'items' : 'item'}?`,
+    targetElement: UI_BULK_DELETE_BTN
+  });
+
+  if (isConfirmed) {
+    updateWishlist(wishlist.filter(item => !selectedWishlistIds.has(item.id)));
+    selectedWishlistIds.clear();
+    updateBulkUI();
+  }
+});
+
+UI_BULK_CANCEL_BTN.addEventListener('click', () => {
+  if (selectedWishlistIds.size === 0) return;
+
+  selectedWishlistIds.clear();
+  updateBulkUI();
+  renderWishlist();
+});
+
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initAnalyticsState();
   renderWishlist();
   renderSummaryCards();
+  updateBulkUI();
 
   fetchExchangeRates();
   renderPriorityChart();

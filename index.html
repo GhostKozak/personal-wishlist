@@ -185,6 +185,7 @@
         <table>
           <thead>
             <tr>
+              <th><input type="checkbox" id="select-all-checkbox"></th>
               <th></th>
               <th class="sortable" data-sort="name">Name <span class="sort-icon">↕</span></th>
               <th class="sortable" data-sort="price">Price <span class="sort-icon">↕</span></th>
@@ -271,6 +272,12 @@
       </ul>
     </div>
   </dialog>
+
+  <div id="bulk-action-bar">
+    <div><span id="selected-count">0</span> items selected</div>
+    <button type="button" id="bulk-delete" class="btn-delete">Delete Selected</button>
+    <button type="button" id="bulk-cancel" class="btn-cancel">Cancel</button>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="toast.js" defer></script>

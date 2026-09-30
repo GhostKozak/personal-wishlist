@@ -284,7 +284,7 @@ td {
   color: var(--text-main);
 }
 
-.btn-delete, .btn-edit {
+.btn-delete, .btn-edit, .btn-cancel {
   background-color: var(--danger);
   color: #fff;
   border: none;
@@ -294,12 +294,16 @@ td {
   transition: var(--transition);
 }
 
-.btn-delete:hover, .btn-edit:hover {
+.btn-delete:hover, .btn-edit:hover, .btn-cancel:hover {
   opacity: 0.85;
 }
 
 .btn-edit {
   background-color: var(--p2-blue);
+}
+
+.btn-cancel {
+  background-color: var(--p4-gray);
 }
 
 /* Priority Badges */
@@ -928,4 +932,22 @@ tr.drop-target-below > td {
   border: 1px solid var(--border-color);
   padding: 2rem;
   position: relative;
+}
+
+#bulk-action-bar {
+  background-color: var(--bg-color);
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+#bulk-action-bar {
+
 }
