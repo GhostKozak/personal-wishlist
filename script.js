@@ -55,6 +55,7 @@ const UI_BULK_CONTAINER = document.getElementById('bulk-action-bar');
 const UI_BULK_SELECTED_ITEM_TEXT = UI_BULK_CONTAINER.querySelector('#selected-count');
 const UI_BULK_DELETE_BTN = UI_BULK_CONTAINER.querySelector('#bulk-delete');
 const UI_BULK_CANCEL_BTN = UI_BULK_CONTAINER.querySelector('#bulk-cancel');
+const UI_SELECT_ALL_CHECKBOX = document.getElementById('select-all-checkbox');
 const MODAL = document.getElementById('newItemModal');
 const selectedWishlistIds = new Set();
 
@@ -417,17 +418,19 @@ const generateTableRow = element => {
   `;
 }
 
-const renderWishlist = () => {
-  const filteredList = wishlist.filter( item => {
+const getFilteredWishlist = () => {
+  return wishlist.filter( item => {
     const matchesSearch = item.name.toLowerCase().includes(filters.search) || (item.note || '').toLowerCase().includes(filters.search);
-
     const matchesStatus = filters.status === 'all' || item.status === filters.status;
-
     const itemPriority = getPriorityInfo(item.importance, item.urgency).class;
     const matchesPriority = filters.priority === 'all' || itemPriority.includes(filters.priority);
 
     return matchesSearch && matchesStatus && matchesPriority;
   });
+}
+
+const renderWishlist = () => {
+  const filteredList = getFilteredWishlist();
 
   const modifier = currentSort.order === 'asc' ? 1 : -1;
 
@@ -845,11 +848,26 @@ const showPriceHistory = (itemId) => {
 };
 
 const updateBulkUI = () => {
-  const size = selectedWishlistIds.size;
-  if (size <= 0) UI_BULK_CONTAINER.style.display = 'none'
-  else { 
+  const currentItems = getFilteredWishlist();
+  const hasItems = currentItems.length > 0;
+
+  const visibleSelectedCount = currentItems.filter(item => 
+    selectedWishlistIds.has(item.id)
+  ).length;
+
+  const isAllSelected = hasItems && visibleSelectedCount === currentItems.length;
+  const isPartiallySelected = visibleSelectedCount > 0 && !isAllSelected;
+
+  UI_SELECT_ALL_CHECKBOX.checked = isAllSelected;
+  UI_SELECT_ALL_CHECKBOX.indeterminate = isPartiallySelected;
+
+  const totalSelected = selectedWishlistIds.size;
+
+  if (totalSelected <= 0) {
+    UI_BULK_CONTAINER.style.display = 'none';
+  } else {
     UI_BULK_CONTAINER.style.display = 'flex';
-    UI_BULK_SELECTED_ITEM_TEXT.textContent = size
+    UI_BULK_SELECTED_ITEM_TEXT.textContent = totalSelected;
   }
 }
 
@@ -1206,6 +1224,20 @@ UI_BULK_CANCEL_BTN.addEventListener('click', () => {
   if (selectedWishlistIds.size === 0) return;
 
   selectedWishlistIds.clear();
+  updateBulkUI();
+  renderWishlist();
+});
+
+UI_SELECT_ALL_CHECKBOX.addEventListener('change', () => {
+  const isChecked = UI_SELECT_ALL_CHECKBOX.checked;
+  const currentItems = getFilteredWishlist();
+  
+  if (isChecked) {
+    currentItems.forEach(item => selectedWishlistIds.add(item.id));
+  } else {
+    currentItems.forEach(item => selectedWishlistIds.delete(item.id));
+  }
+
   updateBulkUI();
   renderWishlist();
 });

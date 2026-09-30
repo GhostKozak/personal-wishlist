@@ -228,6 +228,17 @@ input[type="checkbox"]:checked::before {
   opacity: 1;
 }
 
+input[type="checkbox"]:indeterminate {
+  background-color: rgba(234, 179, 8, 0.15);
+  border-color: var(--warning);
+}
+
+input[type="checkbox"]:indeterminate::before {
+  content: "−";
+  color: var(--warning);
+  opacity: 1;
+}
+
 input[type="checkbox"]:not(:checked):hover::before {
   opacity: 0.9;
   color: var(--danger);
