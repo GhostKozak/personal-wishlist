@@ -956,7 +956,7 @@ tr.drop-target-below > td {
   bottom: 1rem;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
+  display: none;
   gap: 1rem;
   align-items: center;
 }

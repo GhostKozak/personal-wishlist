@@ -478,6 +478,7 @@ const renderWishlist = () => {
 
   VIEW.innerHTML = sortedList.map(generateTableRow).join('');
   updateSortIcons();
+  updateBulkUI();
 }
 
 const updateWishlist = (updatedArray) => {
