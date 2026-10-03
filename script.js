@@ -56,6 +56,7 @@ const UI_BULK_SELECTED_ITEM_TEXT = UI_BULK_CONTAINER.querySelector('#selected-co
 const UI_BULK_DELETE_BTN = UI_BULK_CONTAINER.querySelector('#bulk-delete');
 const UI_BULK_CANCEL_BTN = UI_BULK_CONTAINER.querySelector('#bulk-cancel');
 const UI_SELECT_ALL_CHECKBOX = document.getElementById('select-all-checkbox');
+const UI_BULK_STATUS_SELECT = document.getElementById('bulk-status-select');
 const MODAL = document.getElementById('newItemModal');
 const selectedWishlistIds = new Set();
 
@@ -1240,6 +1241,35 @@ UI_SELECT_ALL_CHECKBOX.addEventListener('change', () => {
 
   updateBulkUI();
   renderWishlist();
+});
+
+UI_BULK_STATUS_SELECT.addEventListener('change', (event) => {
+  const count = selectedWishlistIds.size;
+  if (count === 0) return;
+
+  const newStatus = event.target.value;
+  if (!newStatus) return;
+
+  wishlist = wishlist.map(item => { 
+    if (!selectedWishlistIds.has(item.id)) {
+      return item;
+    }
+
+    const purchaseDate = (newStatus === 'purchased' && !item.purchaseDate)
+      ? new Date().toISOString().slice(0, 10)
+      : item.purchaseDate;
+
+    return {
+      ...item,
+      status: newStatus,
+      purchaseDate: purchaseDate
+    }
+  });
+  
+  event.target.value = '';
+  selectedWishlistIds.clear();
+  updateBulkUI();
+  updateWishlist(wishlist);
 });
 
 window.addEventListener('DOMContentLoaded', () => {

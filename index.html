@@ -274,7 +274,14 @@
   </dialog>
 
   <div id="bulk-action-bar">
-    <div><span id="selected-count">0</span> items selected</div>
+    <div class="selected-text"><span id="selected-count">0</span> items selected</div>
+    <select id="bulk-status-select">
+      <option value="-">Change Status</option>
+      <option value="wishlist">💭 Wishlist</option>
+      <option value="researching">🔍 Researching</option>
+      <option value="purchased">✅ Purchased</option>
+      <option value="canceled">❌ Canceled</option>
+    </select>
     <button type="button" id="bulk-delete" class="btn-delete">Delete Selected</button>
     <button type="button" id="bulk-cancel" class="btn-cancel">Cancel</button>
   </div>

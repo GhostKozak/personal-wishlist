@@ -946,6 +946,8 @@ tr.drop-target-below > td {
 }
 
 #bulk-action-bar {
+  max-width: 600px;
+  width: 100%;
   background-color: var(--bg-color);
   padding: 1rem 1.5rem;
   border-radius: var(--radius);
@@ -959,6 +961,10 @@ tr.drop-target-below > td {
   align-items: center;
 }
 
-#bulk-action-bar {
+#bulk-action-bar button {
+  white-space: nowrap;
+}
 
+#bulk-action-bar .selected-text {
+  white-space: nowrap;
 }
