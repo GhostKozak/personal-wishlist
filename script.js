@@ -17,58 +17,91 @@
  * @property {string} [note]
  */
 
-const FORM = document.getElementById('wishlist-form');
-const VIEW = document.getElementById('wishlist-view');
-const UI_TOTAL_PRICE = document.getElementById('total-price');
-const UI_MONTHLY_INSTALLMENT = document.getElementById('monthly-installment');
-const UI_INSTALLMENT_COUNT = document.getElementById('installment-count');
-const UI_SEARCH_INPUT = document.getElementById('search-input');
-const UI_FILTER_STATUS = document.getElementById('filter-status');
-const UI_FILTER_PRIORITY = document.getElementById('filter-priority');
-const UI_JSON_EXPORT_BUTTON = document.getElementById('btn-export-json');
-const UI_CSV_EXPORT_BUTTON = document.getElementById('btn-export-csv');
-const UI_IMPORT_BUTTON = document.getElementById('btn-import-trigger');
-const UI_FILE_IMPORT = document.getElementById('file-import');
-const UI_RATE_USD = document.getElementById('rate-usd');
-const UI_RATE_EUR = document.getElementById('rate-eur');
-const UI_RATE_STATUS = document.getElementById('rate-status-badge');
-const UI_RATE_LAST_UPDATED = document.getElementById('rate-last-updated');
-const UI_BTN_EDIT_RATES = document.getElementById('btn-edit-rates');
-const UI_RATES_DIALOG = document.getElementById('ratesModal');
-const UI_RATES_FORM = UI_RATES_DIALOG.querySelector('form');
-const UI_ANALYTICS_CONTAINER = document.querySelector('.analytics-container');
-const UI_BTN_TOGGLE_ANALYTICS = document.getElementById('btn-toggle-analytics');
-const UI_TABLE_HEADER = document.querySelector('.table-section table thead');
-const UI_BUDGET_LIMIT_TEXT = document.getElementById('budget-limit-text');
-const UI_BUDGET_STATUS_TEXT = document.getElementById('budget-status-text');
-const UI_BUDGET_PROGRESS_BAR = document.getElementById('budget-progress-bar');
-const UI_BUDGET_EDIT_BUTTON = document.querySelector('.budget-card .btn-edit-budget');
-const UI_BUDGET_MODAL = document.getElementById('budgetModal');
-const UI_BUDGET_MODAL_FORM = UI_BUDGET_MODAL.querySelector("form");
-const UI_THEME_TOGGLE_BUTTON = document.getElementById('btn-theme-toggle');
-const UI_PRICE_HISTORY_MODAL = document.getElementById('priceHistoryModal');
-const UI_HISTORY_MODAL_TITLE = document.getElementById('history-modal-title');
-const UI_HISTORY_SUMMARY = document.getElementById('history-summary');
-const UI_HISTORY_LIST = document.getElementById('history-list');
-const UI_BTN_CLOSE_HISTORY = document.getElementById('btn-close-history');
-const UI_BULK_CONTAINER = document.getElementById('bulk-action-bar');
-const UI_BULK_SELECTED_ITEM_TEXT = UI_BULK_CONTAINER.querySelector('#selected-count');
-const UI_BULK_DELETE_BTN = UI_BULK_CONTAINER.querySelector('#bulk-delete');
-const UI_BULK_CANCEL_BTN = UI_BULK_CONTAINER.querySelector('#bulk-cancel');
-const UI_SELECT_ALL_CHECKBOX = document.getElementById('select-all-checkbox');
-const UI_BULK_STATUS_SELECT = document.getElementById('bulk-status-select');
-const MODAL = document.getElementById('newItemModal');
-const selectedWishlistIds = new Set();
 
-let EXCHANGE_RATES = { TRY: 1, USD: 47.54, EUR: 54.88 };
-let currentEditID = null;
-let filters = { search: '', status: 'all', priority: 'all' };
-/** @type {WishlistItem[]} */
-let wishlist = JSON.parse(localStorage.getItem('myWishlist')) || [];
-let budget = JSON.parse(localStorage.getItem('budgetLimit')) || 0;
-let priorityChart = null;
-let currentSort = { key: null, order: 'asc' }
-let currentDraggedItemId = null;
+const UI = {
+  form: document.getElementById('wishlist-form'),
+  tableBody: document.getElementById('wishlist-view'),
+  tableHeader: document.querySelector('.table-section table thead'),
+  modal: document.getElementById('newItemModal'),
+  themeToggleBtn: document.getElementById('btn-theme-toggle'),
+
+  filters: {
+    search: document.getElementById('search-input'),
+    status: document.getElementById('filter-status'),
+    priority: document.getElementById('filter-priority'),
+  },
+
+  summary: {
+    totalPrice: document.getElementById('total-price'),
+    monthlyInstallment: document.getElementById('monthly-installment'),
+    installmentCount: document.getElementById('installment-count'),
+  },
+
+  exportImport: {
+    jsonBtn: document.getElementById('btn-export-json'),
+    csvBtn: document.getElementById('btn-export-csv'),
+    importBtn: document.getElementById('btn-import-trigger'),
+    fileInput: document.getElementById('file-import'),
+  },
+
+  rates: {
+    usd: document.getElementById('rate-usd'),
+    eur: document.getElementById('rate-eur'),
+    statusBadge: document.getElementById('rate-status-badge'),
+    lastUpdated: document.getElementById('rate-last-updated'),
+    editBtn: document.getElementById('btn-edit-rates'),
+    dialog: document.getElementById('ratesModal'),
+    get form() {
+      return this.dialog?.querySelector('form');
+    },
+  },
+
+  budget: {
+    limitText: document.getElementById('budget-limit-text'),
+    statusText: document.getElementById('budget-status-text'),
+    progressBar: document.getElementById('budget-progress-bar'),
+    editBtn: document.querySelector('.budget-card .btn-edit-budget'),
+    modal: document.getElementById('budgetModal'),
+    get form() {
+      return this.modal?.querySelector('form');
+    },
+  },
+
+  priceHistory: {
+    modal: document.getElementById('priceHistoryModal'),
+    title: document.getElementById('history-modal-title'),
+    summary: document.getElementById('history-summary'),
+    list: document.getElementById('history-list'),
+    closeBtn: document.getElementById('btn-close-history'),
+  },
+
+  analytics: {
+    container: document.querySelector('.analytics-container'),
+    toggleBtn: document.getElementById('btn-toggle-analytics'),
+  },
+
+  bulk: {
+    bar: document.getElementById('bulk-action-bar'),
+    count: document.getElementById('selected-count'),
+    deleteBtn: document.getElementById('bulk-delete'),
+    cancelBtn: document.getElementById('bulk-cancel'),
+    selectAllCheckbox: document.getElementById('select-all-checkbox'),
+    statusSelect: document.getElementById('bulk-status-select'),
+  },
+};
+
+const AppState = {
+  /** @type {WishlistItem[]} */
+  wishlist: JSON.parse(localStorage.getItem('myWishlist')) || [],
+  selectedIds: new Set(),
+  filters: { search: '', status: 'all', priority: 'all' },
+  sort: { key: null, order: 'asc' },
+  rates: { TRY: 1, USD: 47.54, EUR: 54.88 },
+  budget: JSON.parse(localStorage.getItem('budgetLimit')) || 0,
+  draggedId: null,
+  editId: null,
+  priorityChart: null
+};
 
 const PRIORITY_MAP = {
   'important-urgent': { score: 1, label: 'P1: Urgent & Important', class: 'badge-p1' },
@@ -88,7 +121,7 @@ const formatCurrency = (price) => Number(price || 0).toLocaleString("tr-TR", { m
 
 const getPriorityInfo = (importance, urgency) => PRIORITY_MAP[`${importance}-${urgency}`] || PRIORITY_MAP['not-important-not-urgent'];
 
-const currencyToTRY = (price, currency) => Number(price || 0) * (EXCHANGE_RATES[currency] || 1);
+const toTRY = (price, currency, rates = AppState.rates) => Number(price || 0) * (rates[currency] || 1);
 
 const getMonthlyPayment = (item) => {
   if (item.status !== "purchased") return 0;
@@ -96,7 +129,7 @@ const getMonthlyPayment = (item) => {
   const count = Number(item.installmentCount || 0);
   if (count <= 1) return 0;
 
-  return currencyToTRY(item.price, item.currency) / count;
+  return toTRY(item.price, item.currency) / count;
 };
 
 const updateSortIcons = () => {
@@ -107,10 +140,10 @@ const updateSortIcons = () => {
     // Önceki sınıfları temizle
     th.classList.remove('sort-asc', 'sort-desc');
 
-    if (key === currentSort.key) {
+    if (key === AppState.sort.key) {
       // Aktif sıralanan sütuna uygun class'ı ve oku ver
-      th.classList.add(currentSort.order === 'asc' ? 'sort-asc' : 'sort-desc');
-      if (icon) icon.textContent = currentSort.order === 'asc' ? '▲' : '▼';
+      th.classList.add(AppState.sort.order === 'asc' ? 'sort-asc' : 'sort-desc');
+      if (icon) icon.textContent = AppState.sort.order === 'asc' ? '▲' : '▼';
     } else {
       // Aktif olmayan sütunların okunu nötr tut
       if (icon) icon.textContent = '↕';
@@ -125,7 +158,7 @@ const fetchExchangeRates = async () => {
 
   if (cachedData) {
     if (cachedData.isManual || (now - cachedData.timestamp < ONE_HOUR)) {
-      EXCHANGE_RATES = cachedData.rates;
+      AppState.rates = cachedData.rates;
       const dateStr = new Date(cachedData.timestamp).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
       updateRateUI(!cachedData.isManual, `${cachedData.isManual ? 'Manual' : 'Cache'}: ${dateStr}`);
       renderWishlist();
@@ -143,14 +176,14 @@ const fetchExchangeRates = async () => {
     if (data.result === 'success') {
       const rates = data.conversion_rates;
 
-      EXCHANGE_RATES = {
+      AppState.rates = {
         TRY: 1,
         USD: Number(rates.TRY.toFixed(2)),
         EUR: Number((rates.TRY / rates.EUR).toFixed(2))
       };
 
       localStorage.setItem('wishlist_exchange_rates', JSON.stringify({
-        rates: EXCHANGE_RATES,
+        rates: AppState.rates,
         timestamp: now,
         isManual: false
       }));
@@ -177,21 +210,21 @@ const renderPriorityChart = () => {
 
   if (!hasData) {
     chartSection.style.display = 'none';
-    if (priorityChart) {
-      priorityChart.destroy();
-      priorityChart = null;
+    if (AppState.priorityChart) {
+      AppState.priorityChart.destroy();
+      AppState.priorityChart = null;
     }
     return;
   }
 
   chartSection.style.display = 'block';
 
-  if (priorityChart) {
-    priorityChart.destroy();
+  if (AppState.priorityChart) {
+    AppState.priorityChart.destroy();
   }
 
   // 2. Yeni Pie Chart oluştur
-  priorityChart = new Chart(ctx, {
+  AppState.priorityChart = new Chart(ctx, {
     type: 'pie',
     data: {
       labels: ['P1: Urgent & Important', 'P2: Important', 'P3: Urgent', 'P4: Someday'],
@@ -267,28 +300,28 @@ function handleLeave(evt, item, legend) {
 }
 
 const updateRateUI = (isLive, lastUpdatedText) => {
-  if (UI_RATE_USD) UI_RATE_USD.textContent = EXCHANGE_RATES.USD;
-  if (UI_RATE_EUR) UI_RATE_EUR.textContent = EXCHANGE_RATES.EUR;
-  if (UI_RATE_LAST_UPDATED) UI_RATE_LAST_UPDATED.textContent = lastUpdatedText;
+  if (UI.rates.usd) UI.rates.usd.textContent = AppState.rates.USD;
+  if (UI.rates.eur) UI.rates.eur.textContent = AppState.rates.EUR;
+  if (UI.rates.lastUpdated) UI.rates.lastUpdated.textContent = lastUpdatedText;
 
-  if (UI_RATE_STATUS) {
+  if (UI.rates.statusBadge) {
     if (isLive) {
-      UI_RATE_STATUS.className = 'badge-status online';
-      UI_RATE_STATUS.title = 'Rates are kept up to date via live API.';
+      UI.rates.statusBadge.className = 'badge-status online';
+      UI.rates.statusBadge.title = 'Rates are kept up to date via live API.';
     } else {
-      UI_RATE_STATUS.className = 'badge-status warning';
-      UI_RATE_STATUS.title = 'Live rate connection failed! Using fixed/manual rates.';
+      UI.rates.statusBadge.className = 'badge-status warning';
+      UI.rates.statusBadge.title = 'Live rate connection failed! Using fixed/manual rates.';
     }
   }
 };
 
 const getPriorityBudgetDistribution = () => {
   let priTotal = {p1: 0, p2: 0, p3: 0, p4: 0};
-  wishlist
+  AppState.wishlist
     .filter(item => item.status !== "canceled")
     .forEach(item => {
       const key = `p${getPriorityInfo(item.importance, item.urgency).score}`;
-      priTotal[key] += currencyToTRY(item.price, item.currency);
+      priTotal[key] += toTRY(item.price, item.currency);
     });
   return Object.values(priTotal);
 }
@@ -310,57 +343,57 @@ const calculateInstallmentDetails = item => {
 }
 
 const calculateBudget = () => {
-  const wishlistTotal = wishlist
+  const wishlistTotal = AppState.wishlist
     .filter(item => item.status !== "canceled")
-    .reduce((total, item) => total + currencyToTRY(item.price, item.currency), 0);
+    .reduce((total, item) => total + toTRY(item.price, item.currency), 0);
 
-  const installmentTotal = wishlist
+  const installmentTotal = AppState.wishlist
     .filter(item => (Number(item.installmentCount) > 1 && item.status === "purchased"))
-    .reduce((total, item) => total + (currencyToTRY(item.price, item.currency) / Number(item.installmentCount || 1)), 0);
+    .reduce((total, item) => total + (toTRY(item.price, item.currency) / Number(item.installmentCount || 1)), 0);
 
   return { wishlistTotal, installmentTotal };
 }
 
 const renderSummaryCards = () => {
   const { wishlistTotal, installmentTotal } = calculateBudget();
-  const activeInstallmentItems = wishlist.filter(item => (Number(item.installmentCount) > 1 && item.status === "purchased")).length;
-  const remainingBudget = budget - installmentTotal;
-  const percentageBudget = budget > 0 ? (installmentTotal / budget) * 100 : 0;
+  const activeInstallmentItems = AppState.wishlist.filter(item => (Number(item.installmentCount) > 1 && item.status === "purchased")).length;
+  const remainingBudget = AppState.budget - installmentTotal;
+  const percentageBudget = AppState.budget > 0 ? (installmentTotal / AppState.budget) * 100 : 0;
 
-  UI_TOTAL_PRICE.innerHTML = `${formatCurrency(wishlistTotal)} TL`;
-  UI_MONTHLY_INSTALLMENT.innerHTML = `${formatCurrency(installmentTotal)} TL / monthly`;
-  UI_INSTALLMENT_COUNT.innerHTML = `${activeInstallmentItems} Item`;
+  UI.summary.totalPrice.innerHTML = `${formatCurrency(wishlistTotal)} TL`;
+  UI.summary.monthlyInstallment.innerHTML = `${formatCurrency(installmentTotal)} TL / monthly`;
+  UI.summary.installmentCount.innerHTML = `${activeInstallmentItems} Item`;
   
-  if (budget !== 0) {
-    UI_BUDGET_LIMIT_TEXT.innerText = `${formatCurrency(budget)} TRY`;
-    UI_BUDGET_STATUS_TEXT.innerText = `%${Math.round(percentageBudget)} used (Remaining: ${formatCurrency(remainingBudget)} TL)`;
-    UI_BUDGET_PROGRESS_BAR.style.width = `${Math.min(percentageBudget, 100)}%`
-    UI_BUDGET_PROGRESS_BAR.classList.remove('safe', 'warning', 'danger');
+  if (AppState.budget !== 0) {
+    UI.budget.limitText.innerText = `${formatCurrency(AppState.budget)} TRY`;
+    UI.budget.statusText.innerText = `%${Math.round(percentageBudget)} used (Remaining: ${formatCurrency(remainingBudget)} TL)`;
+    UI.budget.progressBar.style.width = `${Math.min(percentageBudget, 100)}%`
+    UI.budget.progressBar.classList.remove('safe', 'warning', 'danger');
     if (percentageBudget >= 90) {
-      UI_BUDGET_PROGRESS_BAR.classList.add('danger');
+      UI.budget.progressBar.classList.add('danger');
     } else if (percentageBudget >= 70) {
-      UI_BUDGET_PROGRESS_BAR.classList.add('warning');
+      UI.budget.progressBar.classList.add('warning');
     } else {
-      UI_BUDGET_PROGRESS_BAR.classList.add('safe');
+      UI.budget.progressBar.classList.add('safe');
     }
   } else {
-    UI_BUDGET_STATUS_TEXT.innerText = 'No budget set';
-    UI_BUDGET_PROGRESS_BAR.classList.remove('safe', 'warning', 'danger');
-    UI_BUDGET_PROGRESS_BAR.style.width = '0%';
+    UI.budget.statusText.innerText = 'No budget set';
+    UI.budget.progressBar.classList.remove('safe', 'warning', 'danger');
+    UI.budget.progressBar.style.width = '0%';
   }
 }
 
 const setBudget = (event) => {
   const formData = new FormData(event.target);
   const formEntries = Object.fromEntries(formData);
-  budget = Number(formEntries.budget);
+  AppState.budget = Number(formEntries.budget);
   localStorage.setItem('budgetLimit', Number(formEntries.budget));
   renderSummaryCards();
 }
 
 const generateTableRow = element => {
   const priority = getPriorityInfo(element.importance, element.urgency);
-  const priceDiff = currencyToTRY(element.price, element.currency) - currencyToTRY(element.initialPrice || element.price, element.currency);
+  const priceDiff = toTRY(element.price, element.currency) - toTRY(element.initialPrice || element.price, element.currency);
   const installmentDetails = calculateInstallmentDetails(element);
 
   let diffHtml = "";
@@ -370,7 +403,7 @@ const generateTableRow = element => {
   let paymentHtml = "Cash";
   if (element.status === "purchased") {
     if (installmentDetails) {
-      paymentHtml = `Installment <br><small>${formatCurrency(currencyToTRY(element.price, element.currency) / installmentDetails.total)} TL/mo</small>`;
+      paymentHtml = `Installment <br><small>${formatCurrency(toTRY(element.price, element.currency) / installmentDetails.total)} TL/mo</small>`;
       paymentHtml += installmentDetails.remaining > 0
         ? `<br/><small style="color: var(--p2-blue)">Remaining: ${installmentDetails.remaining} / ${installmentDetails.total} mos</small>`
         : `<br /><small style="color: var(--success)">Installment Finished 🎉</small>`;
@@ -383,7 +416,7 @@ const generateTableRow = element => {
 
   return `
     <tr ${rowClass} data-wishlist-id="${element.id}">
-      <td><input type="checkbox" data-id="${element.id}" ${selectedWishlistIds.has(element.id) ? 'checked' : ''}></td>
+      <td><input type="checkbox" data-id="${element.id}" ${AppState.selectedIds.has(element.id) ? 'checked' : ''}></td>
       <td class="drag-handle" draggable="true">
         <span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -420,11 +453,11 @@ const generateTableRow = element => {
 }
 
 const getFilteredWishlist = () => {
-  return wishlist.filter( item => {
-    const matchesSearch = item.name.toLowerCase().includes(filters.search) || (item.note || '').toLowerCase().includes(filters.search);
-    const matchesStatus = filters.status === 'all' || item.status === filters.status;
+  return AppState.wishlist.filter( item => {
+    const matchesSearch = item.name.toLowerCase().includes(AppState.filters.search) || (item.note || '').toLowerCase().includes(AppState.filters.search);
+    const matchesStatus = AppState.filters.status === 'all' || item.status === AppState.filters.status;
     const itemPriority = getPriorityInfo(item.importance, item.urgency).class;
-    const matchesPriority = filters.priority === 'all' || itemPriority.includes(filters.priority);
+    const matchesPriority = AppState.filters.priority === 'all' || itemPriority.includes(AppState.filters.priority);
 
     return matchesSearch && matchesStatus && matchesPriority;
   });
@@ -433,17 +466,17 @@ const getFilteredWishlist = () => {
 const renderWishlist = () => {
   const filteredList = getFilteredWishlist();
 
-  const modifier = currentSort.order === 'asc' ? 1 : -1;
+  const modifier = AppState.sort.order === 'asc' ? 1 : -1;
 
   const sortedList = [...filteredList].sort((a, b) => {
     let diff = 0;
 
-    switch (currentSort.key) {
+    switch (AppState.sort.key) {
       case 'name':
         diff = a.name.localeCompare(b.name, 'tr');
         break;
       case 'price':
-        diff = currencyToTRY(a.price, a.currency) - currencyToTRY(b.price, b.currency);
+        diff = toTRY(a.price, a.currency) - toTRY(b.price, b.currency);
         break;
       case 'priority':
         diff = getPriorityInfo(a.importance, a.urgency).score - getPriorityInfo(b.importance, b.urgency).score;
@@ -476,50 +509,50 @@ const renderWishlist = () => {
     return diff * modifier;
   });
 
-  VIEW.innerHTML = sortedList.map(generateTableRow).join('');
+  UI.tableBody.innerHTML = sortedList.map(generateTableRow).join('');
   updateSortIcons();
   updateBulkUI();
 }
 
 const updateWishlist = (updatedArray) => {
-  wishlist = updatedArray;
-  localStorage.setItem('myWishlist', JSON.stringify(wishlist));
+  AppState.wishlist = updatedArray;
+  localStorage.setItem('myWishlist', JSON.stringify(AppState.wishlist));
   renderWishlist();
   renderSummaryCards();
   renderPriorityChart();
 }
 
 const resetFormState = () => {
-  FORM.reset();
+  UI.form.reset();
   clearAllFieldErrors();
-  currentEditID = null;
-  FORM.elements.submitBtn.textContent = 'Save to Wishlist';
+  AppState.editId = null;
+  UI.form.elements.submitBtn.textContent = 'Save to Wishlist';
   document.querySelector('section.form-section > h2').textContent = "Add New Item";
-  FORM.elements.cancelBtn.disabled = true;
+  UI.form.elements.cancelBtn.disabled = true;
 }
 
 const updateItem = (id) => {
-  const editItem = wishlist.find(item => item.id === id);
-  currentEditID = editItem.id;
+  const editItem = AppState.wishlist.find(item => item.id === id);
+  AppState.editId = editItem.id;
   
 
   Object.entries(editItem).forEach( ([key, value]) => {
-    if (FORM.elements[key]) {
-      FORM.elements[key].value = value || "";
+    if (UI.form.elements[key]) {
+      UI.form.elements[key].value = value || "";
     }
   });
 
   document.querySelector('section.form-section > h2').textContent = "Update Item";
-  FORM.elements.submitBtn.textContent = 'Update Item';
-  FORM.elements.cancelBtn.disabled = false;
+  UI.form.elements.submitBtn.textContent = 'Update Item';
+  UI.form.elements.cancelBtn.disabled = false;
 
-  MODAL.showModal();
+  UI.modal.showModal();
 }
 
 const exportJSON = () => {
-  if (wishlist.length === 0) return createToast({type: 'info', message: 'No data to export!' });
+  if (AppState.wishlist.length === 0) return createToast({type: 'info', message: 'No data to export!' });
   
-  const jsonString = JSON.stringify(wishlist, null, 2);
+  const jsonString = JSON.stringify(AppState.wishlist, null, 2);
   const blob = new Blob([jsonString], { type: "application/json" });
   const url = URL.createObjectURL(blob);
 
@@ -532,9 +565,9 @@ const exportJSON = () => {
 }
 
 const exportCSV = () => {
-  if (wishlist.length === 0) return createToast({ type: 'info', message: 'No data to export!' });
+  if (AppState.wishlist.length === 0) return createToast({ type: 'info', message: 'No data to export!' });
 
-  const headers = Array.from(new Set(wishlist.flatMap(item => Object.keys(item))));
+  const headers = Array.from(new Set(AppState.wishlist.flatMap(item => Object.keys(item))));
 
   const formatCell = value => {
     if (value === null || value === undefined) return "";
@@ -547,7 +580,7 @@ const exportCSV = () => {
 
   const headerRow = headers.join(",");
 
-  const dataRows = wishlist.map(item => headers.map(header => formatCell(item[header])).join(","));
+  const dataRows = AppState.wishlist.map(item => headers.map(header => formatCell(item[header])).join(","));
   
   const csvData = [headerRow, ...dataRows].join("\n");
   // return [headerRow, ...dataRows].join("\n");
@@ -669,37 +702,37 @@ const importFile = (event) => {
 }
 
 const toggleAnalytics = () => {
-  if (!UI_ANALYTICS_CONTAINER) return;
+  if (!UI.analytics.container) return;
 
-  const isHidden = UI_ANALYTICS_CONTAINER.hidden;
-  UI_ANALYTICS_CONTAINER.hidden = !isHidden;
+  const isHidden = UI.analytics.container.hidden;
+  UI.analytics.container.hidden = !isHidden;
 
   localStorage.setItem('wishlist_analytics_hidden', (!isHidden).toString());
 
-  if (isHidden && priorityChart) {
+  if (isHidden && AppState.priorityChart) {
     setTimeout(() => {
-      priorityChart.resize();
+      AppState.priorityChart.resize();
     }, 50);
   }
 }
 
 const initAnalyticsState = () => {
-  if (!UI_ANALYTICS_CONTAINER) return;
+  if (!UI.analytics.container) return;
 
   const savedState = localStorage.getItem('wishlist_analytics_hidden');
 
   if (savedState === null) {
-    UI_ANALYTICS_CONTAINER.hidden = true;
+    UI.analytics.container.hidden = true;
   } else {
-    UI_ANALYTICS_CONTAINER.hidden = savedState === 'true';
+    UI.analytics.container.hidden = savedState === 'true';
   }
 };
 
 const updateThemeUI = (theme) => {
   if (theme === 'dark') {
-    UI_THEME_TOGGLE_BUTTON.textContent = '☀️ Toggle Light Mode'
+    UI.themeToggleBtn.textContent = '☀️ Toggle Light Mode'
   } else {
-    UI_THEME_TOGGLE_BUTTON.textContent = '🌙 Toggle Dark Mode'
+    UI.themeToggleBtn.textContent = '🌙 Toggle Dark Mode'
   }
 }
 
@@ -735,8 +768,8 @@ const showFieldError = (inputElement, message) => {
 };
 
 const clearAllFieldErrors = () => {
-  FORM.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
-  FORM.querySelectorAll('.error-text').forEach(el => el.remove());
+  UI.form.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+  UI.form.querySelectorAll('.error-text').forEach(el => el.remove());
 };
 
 const formValidation = (input) => {
@@ -747,16 +780,16 @@ const formValidation = (input) => {
 
   // 1. Name validation
   if (!input.name || input.name.trim().length < 2) {
-    showFieldError(FORM.elements.name, 'Please enter a valid item name (at least 2 chars).');
-    if (!firstInvalidInput) firstInvalidInput = FORM.elements.name;
+    showFieldError(UI.form.elements.name, 'Please enter a valid item name (at least 2 chars).');
+    if (!firstInvalidInput) firstInvalidInput = UI.form.elements.name;
     isValid = false;
   }
   
   // 2. Price validation
   const parsedPrice = Number(input.price);
   if (isNaN(parsedPrice) || parsedPrice <= 0) {
-    showFieldError(FORM.elements.price, 'Price must be a valid number greater than 0.');
-    if (!firstInvalidInput) firstInvalidInput = FORM.elements.price;
+    showFieldError(UI.form.elements.price, 'Price must be a valid number greater than 0.');
+    if (!firstInvalidInput) firstInvalidInput = UI.form.elements.price;
     isValid = false;
   }
 
@@ -773,15 +806,15 @@ const formValidation = (input) => {
 
   // 3. Link validation
   if (!isValidUrl(input.link)) {
-    showFieldError(FORM.elements.link, 'Main link must be a valid URL (e.g. https://...).');
-    if (!firstInvalidInput) firstInvalidInput = FORM.elements.link;
+    showFieldError(UI.form.elements.link, 'Main link must be a valid URL (e.g. https://...).');
+    if (!firstInvalidInput) firstInvalidInput = UI.form.elements.link;
     isValid = false;
   }
 
   // 4. Alt Link validation
   if (!isValidUrl(input.altLink)) {
-    showFieldError(FORM.elements.altLink, 'Alternative link must be a valid URL.');
-    if (!firstInvalidInput) firstInvalidInput = FORM.elements.altLink;
+    showFieldError(UI.form.elements.altLink, 'Alternative link must be a valid URL.');
+    if (!firstInvalidInput) firstInvalidInput = UI.form.elements.altLink;
     isValid = false;
   }
 
@@ -794,10 +827,10 @@ const formValidation = (input) => {
 };
 
 const showPriceHistory = (itemId) => {
-  const item = wishlist.find(i => i.id === itemId);
+  const item = AppState.wishlist.find(i => i.id === itemId);
   if (!item || !item.priceHistory || item.priceHistory.length === 0) return;
 
-  UI_HISTORY_MODAL_TITLE.textContent = `${item.name} - Price History`;
+  UI.priceHistory.title.textContent = `${item.name} - Price History`;
 
   // Toplam net değişim özeti
   const firstRecord = item.priceHistory[0];
@@ -813,12 +846,12 @@ const showPriceHistory = (itemId) => {
     summaryDiff = '<span>No change</span>';
   }
 
-  UI_HISTORY_SUMMARY.innerHTML = `
+  UI.priceHistory.summary.innerHTML = `
     <small>Initial: <strong>${formatCurrency(firstRecord.price)} ${firstRecord.currency}</strong> ➔ Latest: <strong>${formatCurrency(lastRecord.price)} ${lastRecord.currency}</strong> (${summaryDiff})</small>
   `;
 
   // Liste elemanlarını oluştur (kronolojik sıra)
-  UI_HISTORY_LIST.innerHTML = item.priceHistory.map((record, index) => {
+  UI.priceHistory.list.innerHTML = item.priceHistory.map((record, index) => {
     let diffBadge = '';
 
     if (index > 0) {
@@ -846,7 +879,7 @@ const showPriceHistory = (itemId) => {
     `;
   }).join('');
 
-  UI_PRICE_HISTORY_MODAL.showModal();
+  UI.priceHistory.modal.showModal();
 };
 
 const updateBulkUI = () => {
@@ -854,34 +887,34 @@ const updateBulkUI = () => {
   const hasItems = currentItems.length > 0;
 
   const visibleSelectedCount = currentItems.filter(item => 
-    selectedWishlistIds.has(item.id)
+    AppState.selectedIds.has(item.id)
   ).length;
 
   const isAllSelected = hasItems && visibleSelectedCount === currentItems.length;
   const isPartiallySelected = visibleSelectedCount > 0 && !isAllSelected;
 
-  UI_SELECT_ALL_CHECKBOX.checked = isAllSelected;
-  UI_SELECT_ALL_CHECKBOX.indeterminate = isPartiallySelected;
+  UI.bulk.selectAllCheckbox.checked = isAllSelected;
+  UI.bulk.selectAllCheckbox.indeterminate = isPartiallySelected;
 
-  const totalSelected = selectedWishlistIds.size;
+  const totalSelected = AppState.selectedIds.size;
 
   if (totalSelected <= 0) {
-    UI_BULK_CONTAINER.style.display = 'none';
+    UI.bulk.bar.style.display = 'none';
   } else {
-    UI_BULK_CONTAINER.style.display = 'flex';
-    UI_BULK_SELECTED_ITEM_TEXT.textContent = totalSelected;
+    UI.bulk.bar.style.display = 'flex';
+    UI.bulk.count.textContent = totalSelected;
   }
 }
 
-FORM.addEventListener('submit', (event) => {
+UI.form.addEventListener('submit', (event) => {
   event.preventDefault();
   const formData = new FormData(event.target);
   const formEntries = Object.fromEntries(formData);
   if (!formValidation(formEntries)) return;
 
-  if (currentEditID) {
-    wishlist = wishlist.map(oldItem => { 
-      if (oldItem.id !== currentEditID) {
+  if (AppState.editId) {
+    AppState.wishlist = AppState.wishlist.map(oldItem => { 
+      if (oldItem.id !== AppState.editId) {
         return oldItem;
       }
 
@@ -903,7 +936,7 @@ FORM.addEventListener('submit', (event) => {
       };
     });
   } else {
-    wishlist.push({
+    AppState.wishlist.push({
       id: crypto.randomUUID(), 
       initialPrice: formEntries.price,
       createdAt: new Date().toISOString().slice(0, 10),
@@ -918,13 +951,13 @@ FORM.addEventListener('submit', (event) => {
     });
   }
   
-  updateWishlist(wishlist);
+  updateWishlist(AppState.wishlist);
   resetFormState();
 
-  MODAL.close();
+  UI.modal.close();
 });
 
-FORM.addEventListener('input', (event) => {
+UI.form.addEventListener('input', (event) => {
   const target = event.target;
   if (target.classList.contains('input-error')) {
     target.classList.remove('input-error');
@@ -933,9 +966,9 @@ FORM.addEventListener('input', (event) => {
   }
 });
 
-FORM.elements.cancelBtn.addEventListener('click', () => { resetFormState(); VIEW.scrollIntoView({ block: "center" }); MODAL.close() });
+UI.form.elements.cancelBtn.addEventListener('click', () => { resetFormState(); UI.tableBody.scrollIntoView({ block: "center" }); UI.modal.close() });
 
-VIEW.addEventListener('click', async (event) => {
+UI.tableBody.addEventListener('click', async (event) => {
   const deleteBtn = event.target.closest('.btn-delete');
   const editBtn = event.target.closest('.btn-edit');
   const historyBtn = event.target.closest('.btn-history');
@@ -948,60 +981,60 @@ VIEW.addEventListener('click', async (event) => {
 
     if (isConfirmed) { 
       const id = deleteBtn.dataset.id;
-      updateWishlist(wishlist.filter(item => item.id !== id));
-      selectedWishlistIds.delete(id);
+      updateWishlist(AppState.wishlist.filter(item => item.id !== id));
+      AppState.selectedIds.delete(id);
       updateBulkUI();
     }
   }
-  if (editBtn) { updateItem(event.target.dataset.id); FORM.scrollIntoView({ block: "center" }) }
+  if (editBtn) { updateItem(event.target.dataset.id); UI.form.scrollIntoView({ block: "center" }) }
   if (historyBtn) { showPriceHistory(historyBtn.dataset.id) }
 });
 
-VIEW.addEventListener('change', (event) => {
+UI.tableBody.addEventListener('change', (event) => {
   const checkbox = event.target.closest('input[type="checkbox"]');
 
   if (checkbox) { 
     const id = event.target.dataset.id;
     const checkedStatus = event.target.checked;
-    checkedStatus === true ? selectedWishlistIds.add(id) : selectedWishlistIds.delete(id);
+    checkedStatus === true ? AppState.selectedIds.add(id) : AppState.selectedIds.delete(id);
     updateBulkUI();
   }
 });
 
-UI_SEARCH_INPUT.addEventListener('input', (event) => {
-  filters.search = event.target.value.toLowerCase();
+UI.filters.search.addEventListener('input', (event) => {
+  AppState.filters.search = event.target.value.toLowerCase();
   renderWishlist();
 });
 
-UI_FILTER_STATUS.addEventListener('change', (event) => {
-  filters.status = event.target.value;
+UI.filters.status.addEventListener('change', (event) => {
+  AppState.filters.status = event.target.value;
   renderWishlist();
 });
 
-UI_FILTER_PRIORITY.addEventListener('change', (event) => {
-  filters.priority = event.target.value;
+UI.filters.priority.addEventListener('change', (event) => {
+  AppState.filters.priority = event.target.value;
   renderWishlist();
 });
 
-UI_JSON_EXPORT_BUTTON.addEventListener('click', () => exportJSON());
+UI.exportImport.jsonBtn.addEventListener('click', () => exportJSON());
 
-UI_CSV_EXPORT_BUTTON.addEventListener('click', () => exportCSV());
+UI.exportImport.csvBtn.addEventListener('click', () => exportCSV());
 
-UI_IMPORT_BUTTON.addEventListener('click', (event) => UI_FILE_IMPORT.click());
+UI.exportImport.importBtn.addEventListener('click', (event) => UI.exportImport.fileInput.click());
 
-UI_FILE_IMPORT.addEventListener('change', (event) => importFile(event));
+UI.exportImport.fileInput.addEventListener('change', (event) => importFile(event));
 
-UI_BTN_EDIT_RATES?.addEventListener('click', () => {
-  UI_RATES_DIALOG.showModal();
+UI.rates.editBtn?.addEventListener('click', () => {
+  UI.rates.dialog.showModal();
 
-  Object.entries(EXCHANGE_RATES).forEach( ([key, value]) => {
-    if (UI_RATES_FORM.elements[key]) {
-      UI_RATES_FORM.elements[key].value = value || "";
+  Object.entries(AppState.rates).forEach( ([key, value]) => {
+    if (UI.rates.form.elements[key]) {
+      UI.rates.form.elements[key].value = value || "";
     }
   });
 });
 
-UI_RATES_FORM.addEventListener('submit', (event) => {
+UI.rates.form.addEventListener('submit', (event) => {
     const formData = new FormData(event.target);
     const rawEntries = Object.fromEntries(formData);
     const formEntries = Object.fromEntries(
@@ -1009,52 +1042,52 @@ UI_RATES_FORM.addEventListener('submit', (event) => {
     );
     console.log(formEntries);
 
-    EXCHANGE_RATES = {
-      ...EXCHANGE_RATES,
+    AppState.rates = {
+      ...AppState.rates,
       ...formEntries
     };
 
     localStorage.setItem('wishlist_exchange_rates', JSON.stringify({
-      rates: EXCHANGE_RATES,
+      rates: AppState.rates,
       timestamp: Date.now(),
       isManual: true
     }));
 
     updateRateUI(false, 'Manually Set');
-    updateWishlist(wishlist);
+    updateWishlist(AppState.wishlist);
   });
 
-MODAL.addEventListener('close', () => {
+UI.modal.addEventListener('close', () => {
   resetFormState();
 });
 
-UI_BUDGET_MODAL_FORM.addEventListener('submit', (event) => {
+UI.budget.form.addEventListener('submit', (event) => {
   event.preventDefault();
   setBudget(event);
-  UI_BUDGET_MODAL.close();
+  UI.budget.modal.close();
 });
 
-UI_BTN_TOGGLE_ANALYTICS?.addEventListener('click', toggleAnalytics);
+UI.analytics.toggleBtn?.addEventListener('click', toggleAnalytics);
 
-UI_TABLE_HEADER.addEventListener('click', (event) => {
+UI.tableHeader.addEventListener('click', (event) => {
   const th = event.target.closest('th');
   if (!th || !th.dataset.sort) return; // Geçersiz veya data-sort olmayan başlıkları engelle
 
-  if (currentSort.key === th.dataset.sort) {
-    currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+  if (AppState.sort.key === th.dataset.sort) {
+    AppState.sort.order = AppState.sort.order === 'asc' ? 'desc' : 'asc';
   } else {
-    currentSort.key = th.dataset.sort;
-    currentSort.order = 'asc';
+    AppState.sort.key = th.dataset.sort;
+    AppState.sort.order = 'asc';
   }
 
   renderWishlist();
 });
 
-UI_THEME_TOGGLE_BUTTON.addEventListener('click', toggleTheme);
+UI.themeToggleBtn.addEventListener('click', toggleTheme);
 
-UI_BTN_CLOSE_HISTORY?.addEventListener('click', () => UI_PRICE_HISTORY_MODAL.close());
+UI.priceHistory.closeBtn?.addEventListener('click', () => UI.priceHistory.modal.close());
 
-VIEW.addEventListener("dblclick", (event) => {
+UI.tableBody.addEventListener("dblclick", (event) => {
   const statusTrigger = event.target.closest('.status-cell');
   if (!statusTrigger) return;
 
@@ -1069,7 +1102,7 @@ VIEW.addEventListener("dblclick", (event) => {
   }).join('');
 
   statusElement.addEventListener('change', (event) => {
-    const targetWishlistItem = wishlist.find(item => item.id === wishlistID);
+    const targetWishlistItem = AppState.wishlist.find(item => item.id === wishlistID);
     if (!targetWishlistItem) return;
 
     targetWishlistItem.status = event.target.value;
@@ -1078,7 +1111,7 @@ VIEW.addEventListener("dblclick", (event) => {
     }
     
 
-    updateWishlist(wishlist);
+    updateWishlist(AppState.wishlist);
   });
 
   statusElement.addEventListener('blur', () => {
@@ -1094,26 +1127,26 @@ VIEW.addEventListener("dblclick", (event) => {
 document.addEventListener('keydown', (event) => {
   if (event.key === '/' && event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
     event.preventDefault();
-    UI_SEARCH_INPUT.focus();
+    UI.filters.search.focus();
   }
 
   if ((event.ctrlKey || event.metaKey) &&  event.key.toLowerCase() == 'k') {
     event.preventDefault();
-    if (MODAL.open) {
-      MODAL.close();
+    if (UI.modal.open) {
+      UI.modal.close();
     } else {
-      MODAL.showModal();
+      UI.modal.showModal();
     }
   }
 });
 
 const clearDropIndicators = () => {
-  VIEW.querySelectorAll('.drop-target-above, .drop-target-below').forEach(row => {
+  UI.tableBody.querySelectorAll('.drop-target-above, .drop-target-below').forEach(row => {
     row.classList.remove('drop-target-above', 'drop-target-below');
   });
 };
 
-VIEW.addEventListener('dragstart', (event) => {
+UI.tableBody.addEventListener('dragstart', (event) => {
   const handle = event.target.closest('.drag-handle');
   if (!handle) {
     event.preventDefault();
@@ -1123,22 +1156,22 @@ VIEW.addEventListener('dragstart', (event) => {
   const targetRow = handle.closest('tr[data-wishlist-id]');
   if (!targetRow) return;
 
-  const isFiltered = filters.search !== '' || filters.status !== 'all' || filters.priority !== 'all';
+  const isFiltered = AppState.filters.search !== '' || AppState.filters.status !== 'all' || AppState.filters.priority !== 'all';
   if (isFiltered) {
     event.preventDefault();
     return;
   }
 
-  currentDraggedItemId = targetRow.dataset.wishlistId;
+  AppState.draggedId = targetRow.dataset.wishlistId;
   targetRow.classList.add('dragging');
 
   if (event.dataTransfer) {
-    event.dataTransfer.setData('text/plain', currentDraggedItemId);
+    event.dataTransfer.setData('text/plain', AppState.draggedId);
     event.dataTransfer.effectAllowed = 'move';
   }
 });
 
-VIEW.addEventListener('dragover', (event) => {
+UI.tableBody.addEventListener('dragover', (event) => {
   event.preventDefault();
 
   const targetRow = event.target.closest('tr[data-wishlist-id]');
@@ -1156,7 +1189,7 @@ VIEW.addEventListener('dragover', (event) => {
   }
 });
 
-VIEW.addEventListener('drop', (event) => {
+UI.tableBody.addEventListener('drop', (event) => {
   event.preventDefault();
 
   const targetRow = event.target.closest('tr[data-wishlist-id]');
@@ -1166,7 +1199,7 @@ VIEW.addEventListener('drop', (event) => {
   }
 
   const targetId = targetRow.dataset.wishlistId;
-  if (!targetId || targetId === currentDraggedItemId) {
+  if (!targetId || targetId === AppState.draggedId) {
     clearDropIndicators();
     return;
   }
@@ -1175,14 +1208,14 @@ VIEW.addEventListener('drop', (event) => {
   const isBelow = targetRow.classList.contains('drop-target-below');
   clearDropIndicators();
 
-  if (typeof currentSort !== 'undefined') {
-    currentSort.key = null;
+  if (typeof AppState.sort !== 'undefined') {
+    AppState.sort.key = null;
   }
 
-  const toIndex = wishlist.findIndex(item => item.id === targetId);
-  const fromIndex = wishlist.findIndex(item => item.id === currentDraggedItemId);
+  const toIndex = AppState.wishlist.findIndex(item => item.id === targetId);
+  const fromIndex = AppState.wishlist.findIndex(item => item.id === AppState.draggedId);
 
-  const reorderedWishlist = [...wishlist];
+  const reorderedWishlist = [...AppState.wishlist];
   const [movedItem] = reorderedWishlist.splice(fromIndex, 1);
 
   let insertIndex = toIndex + (isBelow ? 1 : 0);
@@ -1195,64 +1228,64 @@ VIEW.addEventListener('drop', (event) => {
   updateSortIcons();
 });
 
-VIEW.addEventListener('dragend', () => {
-  const draggingRow = VIEW.querySelector('.dragging');
+UI.tableBody.addEventListener('dragend', () => {
+  const draggingRow = UI.tableBody.querySelector('.dragging');
   if (draggingRow) draggingRow.classList.remove('dragging');
-  currentDraggedItemId = null;
+  AppState.draggedId = null;
   clearDropIndicators();
 });
 
-VIEW.addEventListener('dragleave', (event) => { 
-  if (!VIEW.contains(event.relatedTarget)) clearDropIndicators(); 
+UI.tableBody.addEventListener('dragleave', (event) => { 
+  if (!UI.tableBody.contains(event.relatedTarget)) clearDropIndicators(); 
 });
 
-UI_BULK_DELETE_BTN.addEventListener('click', async () => {
-  const count = selectedWishlistIds.size;
+UI.bulk.deleteBtn.addEventListener('click', async () => {
+  const count = AppState.selectedIds.size;
   if (count === 0) return;
 
   const isConfirmed = await showConfirm({
     message: `Are you sure you want to delete ${count} ${count > 1 ? 'items' : 'item'}?`,
-    targetElement: UI_BULK_DELETE_BTN
+    targetElement: UI.bulk.deleteBtn
   });
 
   if (isConfirmed) {
-    updateWishlist(wishlist.filter(item => !selectedWishlistIds.has(item.id)));
-    selectedWishlistIds.clear();
+    updateWishlist(AppState.wishlist.filter(item => !AppState.selectedIds.has(item.id)));
+    AppState.selectedIds.clear();
     updateBulkUI();
   }
 });
 
-UI_BULK_CANCEL_BTN.addEventListener('click', () => {
-  if (selectedWishlistIds.size === 0) return;
+UI.bulk.cancelBtn.addEventListener('click', () => {
+  if (AppState.selectedIds.size === 0) return;
 
-  selectedWishlistIds.clear();
+  AppState.selectedIds.clear();
   updateBulkUI();
   renderWishlist();
 });
 
-UI_SELECT_ALL_CHECKBOX.addEventListener('change', () => {
-  const isChecked = UI_SELECT_ALL_CHECKBOX.checked;
+UI.bulk.selectAllCheckbox.addEventListener('change', () => {
+  const isChecked = UI.bulk.selectAllCheckbox.checked;
   const currentItems = getFilteredWishlist();
   
   if (isChecked) {
-    currentItems.forEach(item => selectedWishlistIds.add(item.id));
+    currentItems.forEach(item => AppState.selectedIds.add(item.id));
   } else {
-    currentItems.forEach(item => selectedWishlistIds.delete(item.id));
+    currentItems.forEach(item => AppState.selectedIds.delete(item.id));
   }
 
   updateBulkUI();
   renderWishlist();
 });
 
-UI_BULK_STATUS_SELECT.addEventListener('change', (event) => {
-  const count = selectedWishlistIds.size;
+UI.bulk.statusSelect.addEventListener('change', (event) => {
+  const count = AppState.selectedIds.size;
   if (count === 0) return;
 
   const newStatus = event.target.value;
   if (!newStatus) return;
 
-  wishlist = wishlist.map(item => { 
-    if (!selectedWishlistIds.has(item.id)) {
+  AppState.wishlist = AppState.wishlist.map(item => { 
+    if (!AppState.selectedIds.has(item.id)) {
       return item;
     }
 
@@ -1268,9 +1301,9 @@ UI_BULK_STATUS_SELECT.addEventListener('change', (event) => {
   });
   
   event.target.value = '';
-  selectedWishlistIds.clear();
+  AppState.selectedIds.clear();
   updateBulkUI();
-  updateWishlist(wishlist);
+  updateWishlist(AppState.wishlist);
 });
 
 window.addEventListener('DOMContentLoaded', () => {
