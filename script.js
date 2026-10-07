@@ -136,6 +136,25 @@ const debounce = (fn, delay = 250) =>{
   
 }
 
+const escapeHtml = (str) => {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+const sanitizeUrl = (url) => {
+  if (!url) return '';
+  const trimmed = url.trim()
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return encodeURI(trimmed);
+  }
+  return '';
+}
+
 const getMonthlyPayment = (item) => {
   if (item.status !== "purchased") return 0;
   
@@ -443,9 +462,9 @@ const generateTableRow = element => {
         </span>
       </td>
       <td>
-        ${element.link ? `<a href="${element.link}" target="_blank" rel="noopener noreferrer">${element.name}</a>` : element.name}
-        ${element.altLink ? `<a href="${element.altLink}" title="Alt Link" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
-        ${element.note ? `<br><small class="has-tooltip" data-tooltip="${element.note}">📝</small>` : ""}
+        ${sanitizeUrl(element.link) ? `<a href="${sanitizeUrl(element.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(element.name)}</a>` : escapeHtml(element.name)}
+        ${sanitizeUrl(element.altLink) ? `<a href="${sanitizeUrl(element.altLink)}" title="Alt Link" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
+        ${element.note ? `<br><small class="has-tooltip" data-tooltip="${escapeHtml(element.note)}">📝</small>` : ""}
       </td>
       <td>
         <span class="price">${formatCurrency(element.price)} ${element.currency || "TL"} </span>
@@ -1048,6 +1067,7 @@ UI.rates.editBtn?.addEventListener('click', () => {
 });
 
 UI.rates.form.addEventListener('submit', (event) => {
+    event.preventDefault();
     const formData = new FormData(event.target);
     const rawEntries = Object.fromEntries(formData);
     const formEntries = Object.fromEntries(
