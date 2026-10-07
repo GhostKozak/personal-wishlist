@@ -123,6 +123,19 @@ const getPriorityInfo = (importance, urgency) => PRIORITY_MAP[`${importance}-${u
 
 const toTRY = (price, currency, rates = AppState.rates) => Number(price || 0) * (rates[currency] || 1);
 
+const debounce = (fn, delay = 250) =>{
+  let timerId;
+
+  return function(...args) {
+    clearTimeout(timerId);
+
+    timerId = setTimeout(() => {
+      fn(...args);
+    }, delay);
+  }
+  
+}
+
 const getMonthlyPayment = (item) => {
   if (item.status !== "purchased") return 0;
   
@@ -1001,10 +1014,10 @@ UI.tableBody.addEventListener('change', (event) => {
   }
 });
 
-UI.filters.search.addEventListener('input', (event) => {
+UI.filters.search.addEventListener('input', debounce((event) => {
   AppState.filters.search = event.target.value.toLowerCase();
   renderWishlist();
-});
+}));
 
 UI.filters.status.addEventListener('change', (event) => {
   AppState.filters.status = event.target.value;
