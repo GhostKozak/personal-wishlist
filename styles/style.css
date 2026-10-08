@@ -968,3 +968,11 @@ tr.drop-target-below > td {
 #bulk-action-bar .selected-text {
   white-space: nowrap;
 }
+
+.brand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
