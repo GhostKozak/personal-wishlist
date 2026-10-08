@@ -81,7 +81,7 @@ const resumeTimer = () => {
  * @param {string} message - Bildirim mesajı
  * @param {number} [duration] - İsteğe bağlı özel süre
  */
-const createToast = ({
+export const createToast = ({
   iconless = false,
   type = 'info',
   title, 

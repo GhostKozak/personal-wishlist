@@ -9,7 +9,7 @@ const UI_CONFIRM_MODAL_CANCELBTN = UI_CONFIRM_MODAL.querySelector('.cancelBtn');
  * @param {HTMLElement} [options.targetElement] - Tıklanan buton
  * @returns {Promise<boolean>}
  */
-const showConfirm = ({message = "Emin misiniz?", targetElement = null}) => {
+export const showConfirm = ({message = "Emin misiniz?", targetElement = null}) => {
   if (!UI_CONFIRM_MODAL) return Promise.resolve(false);
   if (UI_CONFIRM_MODAL_MESSAGE) UI_CONFIRM_MODAL_MESSAGE.textContent = message;
 
