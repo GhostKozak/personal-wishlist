@@ -423,14 +423,32 @@ const setBudget = (event) => {
   renderSummaryCards();
 }
 
-const generateTableRow = element => {
-  const priority = getPriorityInfo(element.importance, element.urgency);
+const renderTitleCell = (element) => {
+  const safeLink = sanitizeUrl(element.link);
+  const safeAltLink = sanitizeUrl(element.altLink);
+  const safeName = escapeHtml(element.name);
+  const safeNote = escapeHtml(element.note)
+
+  return `
+    ${safeLink ? `<a href="${safeLink}" target="_blank" rel="noopener noreferrer">${safeName}</a>` : safeName}
+    ${safeAltLink ? `<a href="${safeAltLink}" title="Alt Link" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
+    ${safeNote ? `<br><small class="has-tooltip" data-tooltip="${safeNote}">📝</small>` : ""}
+  `
+}
+
+const renderPriceDiff = (element) => {
   const priceDiff = toTRY(element.price, element.currency) - toTRY(element.initialPrice || element.price, element.currency);
-  const installmentDetails = calculateInstallmentDetails(element);
 
   let diffHtml = "";
+  
   if (priceDiff > 0) diffHtml = `<br><small class="priceDiff negative">▲ +${formatCurrency(priceDiff)} TL</small>`;
   else if (priceDiff < 0) diffHtml = `<br><small class="priceDiff positive">▼ -${formatCurrency(Math.abs(priceDiff))} TL</small>`;
+  
+  return diffHtml
+}
+
+const renderPaymentCell = (element) => {
+  const installmentDetails = calculateInstallmentDetails(element);
 
   let paymentHtml = "Cash";
   if (element.status === "purchased") {
@@ -443,6 +461,12 @@ const generateTableRow = element => {
   } else {
     paymentHtml = "-";
   }
+
+  return paymentHtml
+}
+
+const generateTableRow = element => {
+  const priority = getPriorityInfo(element.importance, element.urgency);
 
   const rowClass = element.status === "canceled" ? 'style="opacity: 0.5;"' : "";
 
@@ -462,16 +486,14 @@ const generateTableRow = element => {
         </span>
       </td>
       <td>
-        ${sanitizeUrl(element.link) ? `<a href="${sanitizeUrl(element.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(element.name)}</a>` : escapeHtml(element.name)}
-        ${sanitizeUrl(element.altLink) ? `<a href="${sanitizeUrl(element.altLink)}" title="Alt Link" target="_blank" rel="noopener noreferrer">🔗</a>` : "" }  
-        ${element.note ? `<br><small class="has-tooltip" data-tooltip="${escapeHtml(element.note)}">📝</small>` : ""}
+        ${renderTitleCell(element)}
       </td>
       <td>
         <span class="price">${formatCurrency(element.price)} ${element.currency || "TL"} </span>
-        ${diffHtml}
+        ${renderPriceDiff(element)}
         ${element.priceHistory?.length > 1 ? `<button type="button" class="btn-history" data-id="${element.id}" title="Price History">📈</button>` : ''}
       </td>
-      <td>${paymentHtml}</td>
+      <td>${renderPaymentCell(element)}</td>
       <td><span class="badge ${priority.class}">${priority.label}</span></td>
       <td class="status-cell" data-id="${element.id}" data-selected="${element.status}"><span class="status-label">${STATUS_MAP[element.status] || element.status}</span></td>
       <td>
