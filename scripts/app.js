@@ -24,6 +24,13 @@ import { fetchExchangeRates, updateRateUI } from './rates.js';
 import { exportCSV, exportJSON, importFile } from './exportImport.js';
 import { showConfirm } from './confirmModal.js';
 
+navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+  .then(reg => {
+    console.log('Register döndü:', reg);
+    reg.addEventListener('updatefound', () => console.log('Yeni worker bulundu!'));
+  })
+  .catch(err => console.error('Doğrudan register hatası:', err));
+
 const toggleAnalytics = () => {
   if (!UI.analytics.container) return;
 
